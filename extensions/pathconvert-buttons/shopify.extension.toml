@@ -1,0 +1,43 @@
+api_version = "2024-01"
+
+[[extensions]]
+type = "theme"
+name = "PathConvert Collection Links"
+handle = "pathconvert-buttons"
+
+[extensions.settings]
+[[extensions.settings.blocks]]
+type = "app"
+name = "Related Collections"
+
+[[extensions.settings.blocks.settings]]
+type = "checkbox"
+id = "show_buttons"
+label = "Show related collection buttons"
+default = true
+
+[[extensions.settings.blocks.settings]]
+type = "range"
+id = "max_buttons"
+label = "Maximum number of buttons"
+min = 2
+max = 8
+step = 1
+default = 7
+
+[[extensions.settings.blocks.settings]]
+type = "select"
+id = "button_style"
+label = "Button style"
+options = [
+  { value = "primary", label = "Primary" },
+  { value = "secondary", label = "Secondary" },
+  { value = "outline", label = "Outline" }
+]
+default = "primary"
+
+[[extensions.settings.blocks.settings]]
+type = "text"
+id = "heading_text"
+label = "Heading text"
+default = "You might also like"

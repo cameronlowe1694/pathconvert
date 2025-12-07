@@ -1,0 +1,265 @@
+{% comment %}
+  PathConvert Related Collections Block
+  Displays AI-recommended related collection buttons with AI-generated anchor text
+
+  STRATEGIC PLACEMENT:
+  For optimal user experience and SEO, this block should be placed:
+  1. AFTER the collection H1 heading
+  2. AFTER the collection description/intro text
+  3. BEFORE faceted navigation/filters (e.g., "Sort", "Product Category", "Price", "Size")
+  4. BEFORE the product grid/cards
+
+  Example placement order:
+  - Collection H1 ("Women's Shoes")
+  - Collection Description
+  - **[PathConvert Related Collections Block]** ← Insert here
+  - Faceted Navigation/Filters
+  - Product Grid
+
+  This matches successful implementations on stores like Gymshark and MyProtein.
+{% endcomment %}
+
+{% if block.settings.show_buttons %}
+  <div class="pathconvert-related-collections" data-collection-handle="{{ collection.handle }}" data-shop="{{ shop.permanent_domain }}">
+    <div class="pathconvert-container">
+      {% if block.settings.heading_text != blank %}
+        <h2 class="pathconvert-heading">{{ block.settings.heading_text }}</h2>
+      {% endif %}
+
+      <div class="pathconvert-buttons" id="pathconvert-buttons-{{ collection.handle }}">
+        {%- comment -%} Buttons will be loaded via JavaScript {%- endcomment -%}
+        <div class="pathconvert-loading">
+          <span class="pathconvert-spinner"></span>
+          <span>Loading recommendations...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .pathconvert-related-collections {
+      margin: 2rem 0;
+      padding: 0 1rem;
+    }
+
+    .pathconvert-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .pathconvert-heading {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .pathconvert-buttons {
+      display: flex;
+      flex-wrap: nowrap; /* No wrapping - horizontal scroll */
+      gap: 0.75rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+      padding: 0.5rem 0;
+      position: relative;
+    }
+
+    /* Scrollbar styling for better UX */
+    .pathconvert-buttons::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .pathconvert-buttons::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+
+    .pathconvert-buttons::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 3px;
+    }
+
+    .pathconvert-buttons::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+
+    /* Gradient fade indicators when scrollable */
+    .pathconvert-container:has(.pathconvert-buttons::-webkit-scrollbar) {
+      position: relative;
+    }
+
+    .pathconvert-loading {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #666;
+      padding: 1rem;
+    }
+
+    .pathconvert-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e0e0e0;
+      border-top-color: #333;
+      border-radius: 50%;
+      animation: pathconvert-spin 0.6s linear infinite;
+    }
+
+    @keyframes pathconvert-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .pathconvert-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Default primary style - will be overridden by theme detection */
+    .pathconvert-button.primary {
+      background-color: #000;
+      color: #fff;
+      border-color: #000;
+    }
+
+    .pathconvert-button.primary:hover {
+      background-color: #333;
+      border-color: #333;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .pathconvert-button.secondary {
+      background-color: #f5f5f5;
+      color: #000;
+      border-color: #e0e0e0;
+    }
+
+    .pathconvert-button.secondary:hover {
+      background-color: #e8e8e8;
+      transform: translateY(-1px);
+    }
+
+    .pathconvert-button.outline {
+      background-color: transparent;
+      color: #000;
+      border-color: #000;
+    }
+
+    .pathconvert-button.outline:hover {
+      background-color: #000;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .pathconvert-hidden {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .pathconvert-buttons {
+        /* Keep horizontal scroll on mobile - no column layout */
+        gap: 0.5rem;
+      }
+
+      .pathconvert-button {
+        min-width: 200px; /* Ensure buttons have minimum width on mobile */
+        flex-shrink: 0;
+      }
+    }
+  </style>
+
+  <script>
+    (function() {
+      const APP_URL = '{{ shop.metafields.pathconvert.app_url | default: "https://your-app-url.com" }}';
+      const container = document.querySelector('[data-collection-handle="{{ collection.handle }}"]');
+
+      if (!container) return;
+
+      const collectionHandle = container.dataset.collectionHandle;
+      const shop = container.dataset.shop;
+      const buttonContainer = document.getElementById('pathconvert-buttons-{{ collection.handle }}');
+      const maxButtons = {{ block.settings.max_buttons | default: 4 }};
+      const buttonStyle = '{{ block.settings.button_style | default: "primary" }}';
+
+      // Fetch related collections
+      fetch(`${APP_URL}/api/collections/${collectionHandle}/related?shop=${shop}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.related && data.related.length > 0) {
+            renderButtons(data.related.slice(0, maxButtons));
+          } else {
+            // Hide the entire section if no recommendations
+            container.classList.add('pathconvert-hidden');
+          }
+        })
+        .catch(error => {
+          console.error('PathConvert: Failed to load related collections', error);
+          container.classList.add('pathconvert-hidden');
+        });
+
+      function renderButtons(collections) {
+        buttonContainer.innerHTML = '';
+
+        collections.forEach(collection => {
+          const button = document.createElement('a');
+          button.href = collection.url || `/collections/${collection.handle}`;
+          button.className = `pathconvert-button ${buttonStyle}`;
+
+          // Use AI-generated anchor text with fallback hierarchy
+          // 1. AI-generated anchor text (primary)
+          // 2. H1 tag from destination collection
+          // 3. Collection title (last resort)
+          button.textContent = collection.anchor_text || collection.h1_tag || `Shop ${collection.title}`;
+
+          // Track click
+          button.addEventListener('click', function() {
+            trackClick(collectionHandle, collection.handle);
+          });
+
+          buttonContainer.appendChild(button);
+        });
+
+        // Apply theme styles
+        applyThemeStyles();
+      }
+
+      function trackClick(source, target) {
+        fetch(`${APP_URL}/api/analytics/click`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ shop, source, target })
+        }).catch(() => {}); // Silently fail
+      }
+
+      function applyThemeStyles() {
+        // Detect primary button styles from theme
+        const primaryButton = document.querySelector('button[type="submit"], .btn, .button, [class*="button"]');
+
+        if (!primaryButton) return;
+
+        const styles = window.getComputedStyle(primaryButton);
+        const buttons = buttonContainer.querySelectorAll('.pathconvert-button.primary');
+
+        buttons.forEach(button => {
+          button.style.backgroundColor = styles.backgroundColor || button.style.backgroundColor;
+          button.style.color = styles.color || button.style.color;
+          button.style.borderRadius = styles.borderRadius || button.style.borderRadius;
+          button.style.fontFamily = styles.fontFamily || button.style.fontFamily;
+        });
+      }
+    })();
+  </script>
+{% endif %}

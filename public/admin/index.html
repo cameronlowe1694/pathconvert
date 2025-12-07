@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PathConvert Admin</title>
+  <link href="https://cdn.shopify.com/static/admin/latest/polaris.css" rel="stylesheet">
+  <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f6f6f7;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .header {
+      background: white;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2rem;
+      color: #202223;
+    }
+
+    .header p {
+      margin: 0;
+      color: #6d7175;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: #6d7175;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #202223;
+    }
+
+    .section {
+      background: white;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .section h2 {
+      margin: 0 0 1.5rem 0;
+      font-size: 1.5rem;
+      color: #202223;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: #008060;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .button:hover {
+      background: #006e52;
+    }
+
+    .button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .button-secondary {
+      background: #f6f6f7;
+      color: #202223;
+      border: 1px solid #c9cccf;
+    }
+
+    .button-secondary:hover {
+      background: #e8e8e9;
+    }
+
+    .collections-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .collections-table th {
+      text-align: left;
+      padding: 1rem;
+      border-bottom: 2px solid #e1e3e5;
+      font-weight: 600;
+      color: #202223;
+    }
+
+    .collections-table td {
+      padding: 1rem;
+      border-bottom: 1px solid #e1e3e5;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: #e3f2ed;
+      color: #008060;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: #6d7175;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e1e3e5;
+      border-top-color: #008060;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 28px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #c9cccf;
+      transition: 0.3s;
+      border-radius: 28px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #008060;
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+
+    .settings-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-weight: 500;
+      color: #202223;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 0.75rem;
+      border: 1px solid #c9cccf;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .success-message {
+      padding: 1rem;
+      background: #e3f2ed;
+      color: #008060;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .progress-container {
+      display: none;
+      margin-bottom: 2rem;
+      padding: 2rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .progress-container.active {
+      display: block;
+    }
+
+    .progress-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #e1e3e5;
+      border-top-color: #008060;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    .progress-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #202223;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e1e3e5;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #008060, #00a86b);
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 4px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .progress-percentage {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #202223;
+    }
+
+    .progress-phase {
+      font-size: 0.875rem;
+      color: #6d7175;
+    }
+
+    .empty-state {
+      display: none;
+      text-align: center;
+      padding: 3rem 2rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .empty-state.active {
+      display: block;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
+      color: #202223;
+    }
+
+    .empty-state p {
+      margin: 0 0 2rem 0;
+      color: #6d7175;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .button-primary {
+      display: inline-block;
+      padding: 1rem 2rem;
+      background: #008060;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .button-primary:hover {
+      background: #006e52;
+    }
+
+    .button-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>PathConvert</h1>
+      <p>AI-powered collection cross-links for your store</p>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Collections</div>
+        <div class="stat-value" id="total-collections">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Recommendations</div>
+        <div class="stat-value" id="total-recommendations">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Clicks</div>
+        <div class="stat-value" id="total-clicks">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Last Sync</div>
+        <div class="stat-value" id="last-sync" style="font-size: 1.25rem;">-</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Settings</h2>
+      <div id="success-message" class="success-message" style="display: none;">
+        Settings saved successfully!
+      </div>
+
+      <div class="toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="is-active" checked>
+          <span class="toggle-slider"></span>
+        </label>
+        <span>Show collection buttons on storefront</span>
+      </div>
+
+      <div class="settings-form">
+        <div class="form-group">
+          <label>Maximum Recommendations</label>
+          <input type="number" id="max-recommendations" min="2" max="6" value="4">
+        </div>
+
+        <div class="form-group">
+          <label>Minimum Similarity Threshold (0-1)</label>
+          <input type="number" id="min-similarity" min="0" max="1" step="0.1" value="0.7">
+        </div>
+
+        <div>
+          <button class="button" onclick="saveSettings()">Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0;">Collections</h2>
+        <button class="button" onclick="analyzeCollections()" id="analyze-btn">
+          Re-analyze Collections
+        </button>
+      </div>
+
+      <div id="progress-container" class="progress-container">
+        <div class="progress-header">
+          <div class="progress-spinner"></div>
+          <h3 class="progress-title">Analyzing Collections</h3>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-info">
+          <div class="progress-percentage" id="progress-percentage">0%</div>
+          <div class="progress-phase" id="progress-phase"></div>
+        </div>
+      </div>
+
+      <div id="empty-state" class="empty-state">
+        <div class="empty-state-icon">📦</div>
+        <h3>No Collections Analyzed Yet</h3>
+        <p>Start by launching an analysis to discover and analyze collections from your store. This will extract data and generate AI embeddings to power smart recommendations.</p>
+        <button class="button-primary" onclick="analyzeCollections()" id="launch-btn">
+          Launch Analysis
+        </button>
+      </div>
+
+      <div id="collections-list">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading collections...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Shopify App Bridge
+    const urlParams = new URLSearchParams(window.location.search);
+    const shop = urlParams.get('shop') || 'example.myshopify.com';
+    const host = urlParams.get('host') || '';
+
+    // Progress polling state
+    let progressPollInterval = null;
+    let isAnalyzing = false;
+
+    // Get phase text based on progress percentage
+    function getPhaseText(percentage) {
+      if (percentage < 20) {
+        return 'Discovering collections from sitemap';
+      } else if (percentage < 40) {
+        return 'Extracting collection data';
+      } else if (percentage < 70) {
+        return 'Generating AI embeddings';
+      } else if (percentage < 90) {
+        return 'Storing data';
+      } else if (percentage <= 100) {
+        return 'Calculating similarities';
+      }
+      return 'Processing';
+    }
+
+    // Poll progress from API
+    async function pollProgress() {
+      try {
+        const response = await fetch(`/api/admin/progress?shop=${shop}`);
+        const data = await response.json();
+
+        if (data.success) {
+          const { progress, status } = data;
+          updateProgressBar(progress);
+
+          // Stop polling when analysis is complete
+          if (status === 'complete' || progress >= 100) {
+            stopProgressPolling();
+            setTimeout(() => {
+              loadCollections();
+            }, 1000);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to poll progress:', error);
+      }
+    }
+
+    // Update progress bar display
+    function updateProgressBar(percentage) {
+      const fill = document.getElementById('progress-fill');
+      const percentageEl = document.getElementById('progress-percentage');
+      const phaseEl = document.getElementById('progress-phase');
+
+      fill.style.width = percentage + '%';
+      percentageEl.textContent = percentage + '%';
+      phaseEl.textContent = getPhaseText(percentage);
+    }
+
+    // Start progress polling
+    function startProgressPolling() {
+      isAnalyzing = true;
+      const progressContainer = document.getElementById('progress-container');
+      progressContainer.classList.add('active');
+      updateProgressBar(0);
+
+      // Poll immediately
+      pollProgress();
+
+      // Poll every 2 seconds
+      progressPollInterval = setInterval(pollProgress, 2000);
+    }
+
+    // Stop progress polling
+    function stopProgressPolling() {
+      if (progressPollInterval) {
+        clearInterval(progressPollInterval);
+        progressPollInterval = null;
+      }
+      isAnalyzing = false;
+    }
+
+    // Load settings and data
+    async function loadSettings() {
+      try {
+        const response = await fetch(`/api/admin/settings?shop=${shop}`);
+        const data = await response.json();
+
+        if (data.success) {
+          document.getElementById('is-active').checked = data.settings.is_active;
+          document.getElementById('max-recommendations').value = data.settings.max_recommendations;
+          document.getElementById('min-similarity').value = data.settings.min_similarity_threshold;
+
+          if (data.settings.last_sync) {
+            document.getElementById('last-sync').textContent = new Date(data.settings.last_sync).toLocaleDateString();
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    }
+
+    async function loadCollections() {
+      try {
+        const response = await fetch(`/api/admin/collections?shop=${shop}`);
+        const data = await response.json();
+
+        if (data.success) {
+          document.getElementById('total-collections').textContent = data.collections.length;
+          renderCollections(data.collections);
+        }
+      } catch (error) {
+        console.error('Failed to load collections:', error);
+      }
+    }
+
+    function renderCollections(collections) {
+      const container = document.getElementById('collections-list');
+      const emptyState = document.getElementById('empty-state');
+      const progressContainer = document.getElementById('progress-container');
+
+      if (collections.length === 0) {
+        // Show empty state, hide collections table and progress
+        container.style.display = 'none';
+        emptyState.classList.add('active');
+        progressContainer.classList.remove('active');
+        return;
+      }
+
+      // Hide empty state, show collections table
+      emptyState.classList.remove('active');
+      container.style.display = 'block';
+      progressContainer.classList.remove('active');
+
+      const html = `
+        <table class="collections-table">
+          <thead>
+            <tr>
+              <th>Collection</th>
+              <th>Products</th>
+              <th>Last Analyzed</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${collections.map(col => `
+              <tr>
+                <td><strong>${col.title}</strong></td>
+                <td>${col.product_count || 0}</td>
+                <td>${col.last_analyzed ? new Date(col.last_analyzed).toLocaleString() : 'Never'}</td>
+                <td><span class="badge">Active</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    async function saveSettings() {
+      try {
+        const settings = {
+          is_active: document.getElementById('is-active').checked,
+          max_recommendations: parseInt(document.getElementById('max-recommendations').value),
+          min_similarity_threshold: parseFloat(document.getElementById('min-similarity').value),
+        };
+
+        const response = await fetch(`/api/admin/settings?shop=${shop}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(settings),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const message = document.getElementById('success-message');
+          message.style.display = 'block';
+          setTimeout(() => {
+            message.style.display = 'none';
+          }, 3000);
+        }
+      } catch (error) {
+        alert('Failed to save settings: ' + error.message);
+      }
+    }
+
+    async function analyzeCollections() {
+      const analyzeBtn = document.getElementById('analyze-btn');
+      const launchBtn = document.getElementById('launch-btn');
+
+      // Disable both buttons
+      if (analyzeBtn) {
+        analyzeBtn.disabled = true;
+        analyzeBtn.textContent = 'Analyzing...';
+      }
+      if (launchBtn) {
+        launchBtn.disabled = true;
+        launchBtn.textContent = 'Analyzing...';
+      }
+
+      try {
+        const response = await fetch(`/api/admin/analyze?shop=${shop}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ immediate: false }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Start progress polling
+          startProgressPolling();
+        } else {
+          alert('Failed to start analysis: ' + (data.message || 'Unknown error'));
+        }
+      } catch (error) {
+        alert('Failed to start analysis: ' + error.message);
+        // Reset button states
+        if (analyzeBtn) {
+          analyzeBtn.disabled = false;
+          analyzeBtn.textContent = 'Re-analyze Collections';
+        }
+        if (launchBtn) {
+          launchBtn.disabled = false;
+          launchBtn.textContent = 'Launch Analysis';
+        }
+      }
+    }
+
+    // Load data on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSettings();
+      loadCollections();
+    });
+  </script>
+</body>
+</html>

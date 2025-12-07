@@ -1,0 +1,41 @@
+{
+  "name": "pathconvert",
+  "version": "1.0.0",
+  "description": "PathConvert - AI-powered collection cross-linking app for Shopify",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "db:migrate": "node src/database/migrate.js",
+    "analyze": "node src/jobs/analyze-collections.js"
+  },
+  "keywords": [
+    "shopify",
+    "app",
+    "collections",
+    "ai",
+    "recommendations"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@shopify/shopify-api": "^9.0.0",
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "pgvector": "^0.1.8",
+    "redis": "^4.6.10",
+    "openai": "^4.20.0",
+    "axios": "^1.6.0",
+    "xml2js": "^0.6.2",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

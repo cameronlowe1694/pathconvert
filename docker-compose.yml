@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: pathconvert-postgres
+    environment:
+      POSTGRES_USER: pathconvert
+      POSTGRES_PASSWORD: pathconvert_password
+      POSTGRES_DB: pathconvert
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pathconvert"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: pathconvert-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PathConvert App
+  app:
+    build: .
+    container_name: pathconvert-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://pathconvert:pathconvert_password@postgres:5432/pathconvert
+      REDIS_URL: redis://redis:6379
+      SHOPIFY_API_KEY: ${SHOPIFY_API_KEY}
+      SHOPIFY_API_SECRET: ${SHOPIFY_API_SECRET}
+      SHOPIFY_SCOPES: read_products,read_themes,read_content,write_script_tags
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      APP_URL: ${APP_URL}
+      HOST: ${HOST}
+      SESSION_SECRET: ${SESSION_SECRET}
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  postgres_data:
+  redis_data:

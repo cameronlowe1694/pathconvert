@@ -1,0 +1,25 @@
+# Shopify App Configuration for PathConvert
+
+name = "PathConvert"
+client_id = "" # Set via environment variable or CLI
+application_url = "https://your-app-url.com"
+embedded = true
+
+[access_scopes]
+scopes = "read_products,read_themes,read_content,write_script_tags"
+
+[auth]
+redirect_urls = [
+  "https://your-app-url.com/api/auth/callback",
+  "https://your-app-url.com/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-01"
+
+[[webhooks.subscriptions]]
+topics = [ "collections/create", "collections/update", "collections/delete", "app/uninstalled" ]
+uri = "/api/webhooks"
+
+[pos]
+embedded = false
