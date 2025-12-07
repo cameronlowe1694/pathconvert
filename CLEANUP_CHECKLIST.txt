@@ -1,0 +1,79 @@
+PATHCONVERT CLEANUP CHECKLIST
+=============================
+
+✅ = DONE (by cleanup script)
+⏳ = TODO (needs your action)
+
+LOCAL ENVIRONMENT:
+[✅] Clean node_modules
+[✅] Reinstall dependencies (176 packages)
+[✅] Initialize Git repository
+[✅] Remove old code references
+
+GITHUB:
+[⏳] Create new 'pathconvert' repository
+     → Go to: https://github.com/new
+     → Name: pathconvert
+     → Then run: git remote add origin https://github.com/YOUR_USERNAME/pathconvert.git
+     → Then run: git push -u origin main
+
+[⏳] Delete old 'plp-linker-engine' repository
+     → Go to: https://github.com/cameronlowe1694/plp-linker-engine
+     → Settings → Danger Zone → Delete repository
+
+RENDER.COM:
+[⏳] Delete old web service 'plp-linker-engine'
+     → Go to: https://dashboard.render.com
+     → Click service → Settings → Delete Web Service
+
+[⏳] Delete old PostgreSQL database
+     → Dashboard → PostgreSQL → Select old DB → Settings → Delete
+
+[⏳] Delete old Redis instance
+     → Dashboard → Redis → Select old Redis → Settings → Delete
+
+SHOPIFY PARTNERS:
+[⏳] Delete old app (Draft status)
+     → Go to: https://partners.shopify.com/4570938/apps
+     → Click old app → App setup → Delete app
+
+[⏳] Create fresh PathConvert app
+     → Click "Create app" → Public app
+     → Name: PathConvert
+     → URL: https://pathconvert.onrender.com (or localhost for testing)
+     → Scopes: read_products, read_themes, read_content, read_locations
+
+[⏳] Save API credentials
+     → Copy API key: ________________
+     → Copy API secret: ________________
+
+SHOPIFY DEV STORES:
+[⏳] Uninstall old app from each dev store
+     → Store admin → Apps → Delete old app
+
+[⏳] Remove old theme extension blocks
+     → Online Store → Themes → Customize
+     → Remove old collection blocks → Save
+
+FINAL STEPS:
+[⏳] Create .env file
+     → Run: cp .env.example .env
+     → Add Shopify API key and secret
+     → Add OpenAI API key
+
+[⏳] Push to GitHub
+     → Run: git push -u origin main
+
+[⏳] Deploy to Render.com (fresh)
+     → Create new web service
+     → Connect to GitHub pathconvert repo
+     → Add environment variables
+
+VERIFICATION:
+Run these commands to verify:
+  cd /Users/cameronlowe/pathconvert
+  git remote -v  # Should show pathconvert repo
+  npm list --depth=0  # Should show 176 packages
+  grep -r "plp-linker" . --exclude-dir=node_modules --exclude-dir=.git  # Should find nothing
+
+YOU'RE READY WHEN ALL BOXES ARE CHECKED! 🎉

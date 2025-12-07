@@ -14,9 +14,9 @@ const shopify = shopifyApi({
     'write_script_tags',
   ],
   hostName: process.env.HOST.replace(/https?:\/\//, ''),
-  hostScheme: 'https',
+  hostScheme: process.env.NODE_ENV === 'production' ? 'https' : 'http',
   apiVersion: LATEST_API_VERSION,
-  isEmbeddedApp: true,
+  isEmbeddedApp: process.env.NODE_ENV === 'production',
   logger: {
     level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   },

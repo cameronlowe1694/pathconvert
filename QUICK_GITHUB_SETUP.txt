@@ -1,0 +1,76 @@
+QUICK GITHUB SETUP - 2 STEPS
+============================
+
+GitHub CLI is now installed! Just authenticate and I can create the repo for you.
+
+STEP 1: Authenticate (1 minute)
+--------------------------------
+Run this command:
+
+    gh auth login
+
+Follow the prompts:
+  1. Select: GitHub.com
+  2. Select: HTTPS
+  3. Select: Yes
+  4. Select: Login with a web browser
+  5. Copy the code shown
+  6. Browser opens → Paste code → Authorize
+
+You'll see: ✓ Logged in to github.com as YOUR_USERNAME
+
+
+STEP 2: Create Repository (10 seconds)
+---------------------------------------
+Run this command:
+
+    ./create-github-repo.sh
+
+This will automatically:
+  ✅ Create 'pathconvert' repository on GitHub
+  ✅ Add it as remote to your local repo
+  ✅ Push all your code
+  ✅ Give you the repository URL
+
+Done! Your code will be on GitHub.
+
+
+WHAT THIS DOESN'T DO:
+---------------------
+❌ Shopify Partners - still need web interface
+❌ Render.com - still need web interface
+❌ Dev stores - still need web interface
+
+But once GitHub CLI is authenticated, I can:
+  ✅ Create repos
+  ✅ Push code
+  ✅ Create releases
+  ✅ Manage issues/PRs
+
+For everything else (Shopify, Render), follow:
+  → MANUAL_CLEANUP_STEPS.md
+
+
+WHY ROOCODE COULD DO MORE:
+--------------------------
+Roocode likely had:
+  1. Browser automation (Puppeteer/Playwright)
+  2. API tokens stored in their system
+  3. Integration with multiple services
+
+Claude Code focuses on:
+  ✅ Local development
+  ✅ CLI tools (like GitHub CLI)
+  ✅ File operations
+  ✅ Code generation
+
+For web-based services without APIs/CLI:
+  → You'll need to use the web interface
+  → But I can guide you step-by-step!
+
+
+READY?
+------
+Run: gh auth login
+
+Then: ./create-github-repo.sh

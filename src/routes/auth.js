@@ -26,6 +26,12 @@ router.get('/auth', validateShopDomain, async (req, res) => {
 // OAuth callback
 router.get('/auth/callback', async (req, res) => {
   try {
+    // Check if this is a valid OAuth callback
+    if (!req.query.code && !req.query.hmac) {
+      console.log('Invalid OAuth callback - missing parameters');
+      return res.redirect('/');
+    }
+
     const callback = await shopify.auth.callback({
       rawRequest: req,
       rawResponse: res,
