@@ -156,8 +156,15 @@ async function runAnalysis(shop) {
       analysisProgress[shop].progress = 85;
       analysisProgress[shop].status = 'Installing buttons on your store...';
 
-      // Step 4: Install script tag
-      await installScriptTag(shop);
+      // Step 4: Install script tag (optional - may fail on dev stores)
+      try {
+        await installScriptTag(shop);
+        analysisProgress[shop].scriptTagInstalled = true;
+      } catch (error) {
+        console.warn('Script tag installation failed (this is normal for dev stores):', error.message);
+        analysisProgress[shop].scriptTagInstalled = false;
+        analysisProgress[shop].scriptTagError = error.message;
+      }
 
       analysisProgress[shop].progress = 100;
       analysisProgress[shop].status = 'Complete!';
