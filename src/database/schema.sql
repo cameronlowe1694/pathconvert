@@ -1,95 +1,85 @@
--- Enable pgvector extension
+-- Enable pgvector extension for vector similarity search
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Collections table
+-- Shop settings table
+CREATE TABLE IF NOT EXISTS shop_settings (
+  id SERIAL PRIMARY KEY,
+  shop_domain VARCHAR(255) UNIQUE NOT NULL,
+  access_token TEXT NOT NULL,
+  installed_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  is_active BOOLEAN DEFAULT true,
+  analysis_frequency VARCHAR(50) DEFAULT 'weekly',
+  min_similarity_score DECIMAL(3,2) DEFAULT 0.70,
+  max_recommendations INTEGER DEFAULT 3
+);
+
+-- Collections table with vector embeddings
 CREATE TABLE IF NOT EXISTS collections (
   id SERIAL PRIMARY KEY,
   shop_domain VARCHAR(255) NOT NULL,
   collection_id VARCHAR(255) NOT NULL,
   handle VARCHAR(255) NOT NULL,
-  title VARCHAR(255) NOT NULL,
-  h1_tag VARCHAR(255), -- Extracted H1 for anchor text fallback
+  title VARCHAR(500),
   description TEXT,
-  url TEXT NOT NULL,
-  product_count INTEGER DEFAULT 0,
-  embedding VECTOR(1536),
-  last_analyzed TIMESTAMP DEFAULT NOW(),
-  created_at TIMESTAMP DEFAULT NOW(),
+  h1_tag TEXT,
+  meta_title VARCHAR(500),
+  meta_description TEXT,
+  url TEXT,
+  embedding vector(1536),
+  analyzed_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(shop_domain, collection_id)
 );
 
--- Index for faster lookups
-CREATE INDEX IF NOT EXISTS idx_collections_shop ON collections(shop_domain);
-CREATE INDEX IF NOT EXISTS idx_collections_handle ON collections(shop_domain, handle);
-
--- Related collections table
-CREATE TABLE IF NOT EXISTS related_collections (
+-- Collection recommendations (similarity matches)
+CREATE TABLE IF NOT EXISTS collection_recommendations (
   id SERIAL PRIMARY KEY,
   shop_domain VARCHAR(255) NOT NULL,
   source_collection_id VARCHAR(255) NOT NULL,
-  related_collection_id VARCHAR(255) NOT NULL,
-  similarity_score FLOAT NOT NULL,
-  anchor_text VARCHAR(255) NOT NULL, -- AI-generated or H1 fallback
-  anchor_text_source VARCHAR(50), -- 'ai_generated', 'h1_tag', 'title'
-  position INTEGER NOT NULL,
+  target_collection_id VARCHAR(255) NOT NULL,
+  similarity_score DECIMAL(5,4) NOT NULL,
+  recommendation_rank INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(shop_domain, source_collection_id, position)
+  UNIQUE(shop_domain, source_collection_id, target_collection_id)
 );
 
--- Index for faster related collection lookups
-CREATE INDEX IF NOT EXISTS idx_related_shop_source ON related_collections(shop_domain, source_collection_id);
-
--- Shop settings table
-CREATE TABLE IF NOT EXISTS shop_settings (
-  shop_domain VARCHAR(255) PRIMARY KEY,
-  is_active BOOLEAN DEFAULT true,
-  max_recommendations INTEGER DEFAULT 7, -- Top 7 matching Colab workflow
-  min_similarity_threshold FLOAT DEFAULT 0.85, -- 0.85 matching Colab workflow
-  analysis_progress INTEGER DEFAULT 0, -- For progress bar (0-100)
-  button_style JSONB,
-  access_token TEXT,
-  last_sync TIMESTAMP,
-  installed_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Shop sessions table for OAuth
-CREATE TABLE IF NOT EXISTS shop_sessions (
-  id VARCHAR(255) PRIMARY KEY,
-  shop_domain VARCHAR(255) NOT NULL,
-  state VARCHAR(255) NOT NULL,
-  is_online BOOLEAN DEFAULT false,
-  scope VARCHAR(255),
-  expires TIMESTAMP,
-  access_token TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Analytics table (optional)
-CREATE TABLE IF NOT EXISTS button_clicks (
+-- Link analytics table
+CREATE TABLE IF NOT EXISTS collection_link_analytics (
   id SERIAL PRIMARY KEY,
   shop_domain VARCHAR(255) NOT NULL,
-  source_collection_handle VARCHAR(255) NOT NULL,
-  target_collection_handle VARCHAR(255) NOT NULL,
-  clicked_at TIMESTAMP DEFAULT NOW()
+  source_collection_id VARCHAR(255) NOT NULL,
+  target_collection_id VARCHAR(255) NOT NULL,
+  clicked_at TIMESTAMP DEFAULT NOW(),
+  session_id VARCHAR(255),
+  user_agent TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_clicks_shop ON button_clicks(shop_domain);
-CREATE INDEX IF NOT EXISTS idx_clicks_date ON button_clicks(clicked_at);
-
--- Job queue table for background tasks
+-- Job queue for async processing
 CREATE TABLE IF NOT EXISTS job_queue (
   id SERIAL PRIMARY KEY,
   shop_domain VARCHAR(255) NOT NULL,
-  job_type VARCHAR(50) NOT NULL,
-  status VARCHAR(20) DEFAULT 'pending',
+  job_type VARCHAR(100) NOT NULL,
+  status VARCHAR(50) DEFAULT 'pending',
   payload JSONB,
-  error TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   started_at TIMESTAMP,
-  completed_at TIMESTAMP
+  completed_at TIMESTAMP,
+  error_message TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_jobs_status ON job_queue(status, created_at);
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_collections_shop ON collections(shop_domain);
+CREATE INDEX IF NOT EXISTS idx_collections_handle ON collections(handle);
+CREATE INDEX IF NOT EXISTS idx_recommendations_shop ON collection_recommendations(shop_domain);
+CREATE INDEX IF NOT EXISTS idx_recommendations_source ON collection_recommendations(source_collection_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_shop ON collection_link_analytics(shop_domain);
+CREATE INDEX IF NOT EXISTS idx_job_queue_status ON job_queue(status);
+CREATE INDEX IF NOT EXISTS idx_job_queue_shop ON job_queue(shop_domain);
+
+-- Vector similarity index (using ivfflat for fast approximate nearest neighbor search)
+-- This creates 100 inverted lists - good for datasets with hundreds to thousands of collections
+CREATE INDEX IF NOT EXISTS idx_collections_embedding ON collections 
+  USING ivfflat (embedding vector_cosine_ops) 
+  WITH (lists = 100);
