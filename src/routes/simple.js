@@ -159,7 +159,9 @@ async function runAnalysis(shop) {
 
       // Step 4: Calculate similarities using vector embeddings
       const similarityEngine = new SimilarityEngine(shop);
-      await similarityEngine.calculateAllSimilarities(3, 0.70);
+      console.log('Starting similarity calculation...');
+      const simResult = await similarityEngine.calculateAllSimilarities(3, 0.50); // Lower threshold for testing
+      console.log('Similarity calculation result:', simResult);
 
       analysisProgress[shop].progress = 85;
       analysisProgress[shop].status = 'Installing buttons on your store...';

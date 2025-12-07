@@ -92,6 +92,11 @@ export class SimilarityEngine {
 
       // Filter by child relationship and minimum similarity threshold
       // Per Colab: Use 0.99 threshold for child relationships, 0.85 for others
+      console.log(`Found ${result.rows.length} potential matches for ${collectionId}`);
+      result.rows.forEach(row => {
+        console.log(`  - ${row.handle}: score=${row.similarity_score}`);
+      });
+
       const similarCollections = result.rows
         .filter((row) => {
           const isChild = this.isChildCollection(sourceUrl, row.url);
@@ -105,6 +110,7 @@ export class SimilarityEngine {
         })
         .slice(0, limit);
 
+      console.log(`After filtering: ${similarCollections.length} recommendations for ${collectionId}`);
       return similarCollections;
     } finally {
       client.release();
