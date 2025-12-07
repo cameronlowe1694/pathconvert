@@ -13,17 +13,32 @@ export class SitemapParser {
     try {
       console.log(`Discovering collections for ${this.shopDomain}...`);
 
-      // Fetch main sitemap
+      // Try to fetch main sitemap
       const mainSitemap = await this.fetchSitemap(`${this.baseUrl}/sitemap.xml`);
-      const collectionSitemaps = this.extractCollectionSitemaps(mainSitemap);
+
+      let collectionSitemaps = [];
+
+      if (mainSitemap) {
+        // Extract collection sitemaps from main sitemap
+        collectionSitemaps = this.extractCollectionSitemaps(mainSitemap);
+      }
+
+      // If no collection sitemaps found, try direct collection sitemap URL
+      // (Development stores often don't have sitemap.xml but have sitemap_collections_1.xml)
+      if (collectionSitemaps.length === 0) {
+        console.log('No collection sitemaps in main sitemap, trying direct URL...');
+        collectionSitemaps = [`${this.baseUrl}/sitemap_collections_1.xml`];
+      }
 
       let allCollectionUrls = [];
 
       // Fetch each collection sitemap
       for (const sitemapUrl of collectionSitemaps) {
         const sitemap = await this.fetchSitemap(sitemapUrl);
-        const urls = this.extractCollectionUrls(sitemap);
-        allCollectionUrls = allCollectionUrls.concat(urls);
+        if (sitemap) {
+          const urls = this.extractCollectionUrls(sitemap);
+          allCollectionUrls = allCollectionUrls.concat(urls);
+        }
       }
 
       console.log(`Found ${allCollectionUrls.length} collection URLs`);
