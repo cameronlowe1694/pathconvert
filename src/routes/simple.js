@@ -53,40 +53,68 @@ router.get('/simple/progress', async (req, res) => {
 
 async function runAnalysis(shop) {
   try {
-    // Step 1: Discover collections (10%)
-    analysisProgress[shop].progress = 10;
-    analysisProgress[shop].status = 'Discovering collections from sitemap...';
+    // Step 1: Get access token from database
+    analysisProgress[shop].progress = 5;
+    analysisProgress[shop].status = 'Fetching shop credentials...';
 
-    const parser = new SitemapParser(shop);
-    const collectionUrls = await parser.discoverCollections();
+    const client = await pool.connect();
+    let accessToken;
+
+    try {
+      const result = await client.query(
+        'SELECT access_token FROM shop_settings WHERE shop_domain = $1',
+        [shop]
+      );
+
+      if (result.rows.length === 0) {
+        throw new Error('Shop not found in database. Please install the app first.');
+      }
+
+      accessToken = result.rows[0].access_token;
+    } finally {
+      client.release();
+    }
+
+    // Step 2: Fetch collections from Shopify Admin API (10-20%)
+    analysisProgress[shop].progress = 10;
+    analysisProgress[shop].status = 'Fetching collections from Shopify...';
+
+    const collectionsResponse = await axios.get(
+      `https://${shop}/admin/api/2024-01/custom_collections.json`,
+      {
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const shopifyCollections = collectionsResponse.data.custom_collections || [];
 
     analysisProgress[shop].progress = 20;
-    analysisProgress[shop].status = `Found ${collectionUrls.length} collections. Fetching content...`;
+    analysisProgress[shop].status = `Found ${shopifyCollections.length} collections. Analyzing...`;
 
-    // Step 2: Fetch and analyze each collection (20-70%)
+    // Step 3: Analyze each collection (20-70%)
     const collections = [];
-    const progressPerCollection = 50 / collectionUrls.length;
+    const progressPerCollection = shopifyCollections.length > 0 ? 50 / shopifyCollections.length : 0;
 
-    for (let i = 0; i < collectionUrls.length; i++) {
-      const { url } = collectionUrls[i];
-      const handle = url.split('/collections/')[1];
+    for (let i = 0; i < shopifyCollections.length; i++) {
+      const collection = shopifyCollections[i];
 
       analysisProgress[shop].progress = 20 + (i * progressPerCollection);
-      analysisProgress[shop].status = `Analyzing ${handle}... (${i + 1}/${collectionUrls.length})`;
+      analysisProgress[shop].status = `Analyzing ${collection.handle}... (${i + 1}/${shopifyCollections.length})`;
 
-      // Fetch collection page
-      const response = await axios.get(url, {
-        headers: { 'User-Agent': 'PathConvert/1.0' },
-        timeout: 10000
-      });
+      // Use API data directly - much more reliable than scraping
+      const title = collection.title || '';
+      const handle = collection.handle || '';
+      const bodyHtml = collection.body_html || '';
 
-      const $ = cheerio.load(response.data);
-      const h1 = $('h1').first().text().trim();
-      const title = $('title').text().trim();
-      const metaDesc = $('meta[name="description"]').attr('content') || '';
+      // Strip HTML tags from body
+      const $ = cheerio.load(bodyHtml);
+      const description = $.text().trim();
 
       // Create content for embedding
-      const content = `${handle} ${h1} ${title} ${metaDesc}`.toLowerCase();
+      const content = `${handle} ${title} ${description}`.toLowerCase();
 
       // Generate embedding
       const embeddingResponse = await openai.embeddings.create({
@@ -98,10 +126,10 @@ async function runAnalysis(shop) {
 
       collections.push({
         handle,
-        url,
-        h1,
-        title,
-        metaDesc,
+        url: `https://${shop}/collections/${handle}`,
+        h1: title,
+        title: title,
+        metaDesc: description.substring(0, 160),
         embedding
       });
     }
