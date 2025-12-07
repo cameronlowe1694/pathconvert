@@ -1,10 +1,8 @@
 import pool from '../database/db.js';
-import AnchorTextGenerator from './anchor-text-generator.js';
 
 export class SimilarityEngine {
   constructor(shopDomain) {
     this.shopDomain = shopDomain;
-    this.anchorTextGenerator = new AnchorTextGenerator();
   }
 
   // Check if target URL is a child of source URL (Colab workflow logic)
@@ -109,7 +107,7 @@ export class SimilarityEngine {
   }
 
   // Calculate similarities for all collections and store them
-  async calculateAllSimilarities(maxRecommendations = 7, minSimilarity = 0.85) {
+  async calculateAllSimilarities(maxRecommendations = 3, minSimilarity = 0.70) {
     const client = await pool.connect();
 
     try {
@@ -127,8 +125,8 @@ export class SimilarityEngine {
       // Begin transaction
       await client.query('BEGIN');
 
-      // Delete existing related collections for this shop
-      await client.query('DELETE FROM related_collections WHERE shop_domain = $1', [this.shopDomain]);
+      // Delete existing recommendations for this shop
+      await client.query('DELETE FROM collection_recommendations WHERE shop_domain = $1', [this.shopDomain]);
 
       let totalRelations = 0;
 
@@ -146,38 +144,17 @@ export class SimilarityEngine {
           minSimilarity
         );
 
-        // Generate anchor text for each similar collection
-        const anchorTextPairs = similar.map((target) => ({
-          source: {
-            title: collection.title,
-            description: collection.description,
-            h1Tag: collection.h1_tag,
-          },
-          target: {
-            title: target.title,
-            description: target.description,
-            h1Tag: target.h1_tag,
-          },
-        }));
-
-        console.log(`Generating anchor text for ${similar.length} links...`);
-        const anchorTexts = await this.anchorTextGenerator.generateBatch(anchorTextPairs);
-
-        // Store related collections with anchor text
+        // Store recommendations
         for (let i = 0; i < similar.length; i++) {
-          const anchorTextData = anchorTexts[i];
-
           await client.query(
-            `INSERT INTO related_collections
-             (shop_domain, source_collection_id, related_collection_id, similarity_score, anchor_text, anchor_text_source, position)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            `INSERT INTO collection_recommendations
+             (shop_domain, source_collection_id, target_collection_id, similarity_score, recommendation_rank)
+             VALUES ($1, $2, $3, $4, $5)`,
             [
               this.shopDomain,
-              collection.collection_id,
-              similar[i].collection_id,
+              collection.handle,
+              similar[i].handle,
               similar[i].similarity_score,
-              anchorTextData.anchorText,
-              anchorTextData.source,
               i + 1,
             ]
           );
@@ -187,7 +164,7 @@ export class SimilarityEngine {
 
       await client.query('COMMIT');
 
-      console.log(`Created ${totalRelations} collection relationships with AI-generated anchor text`);
+      console.log(`Created ${totalRelations} collection recommendations`);
 
       return {
         collectionsProcessed: collections.length,
@@ -212,18 +189,13 @@ export class SimilarityEngine {
           c.handle,
           c.title,
           c.url,
-          rc.similarity_score,
-          rc.anchor_text,
-          rc.anchor_text_source,
-          rc.position
-        FROM related_collections rc
-        JOIN collections source ON source.collection_id = rc.source_collection_id
-        JOIN collections c ON c.collection_id = rc.related_collection_id
-        WHERE rc.shop_domain = $1
-          AND source.shop_domain = $1
-          AND c.shop_domain = $1
-          AND source.handle = $2
-        ORDER BY rc.position ASC
+          cr.similarity_score,
+          cr.recommendation_rank as position
+        FROM collection_recommendations cr
+        JOIN collections c ON c.handle = cr.target_collection_id AND c.shop_domain = cr.shop_domain
+        WHERE cr.shop_domain = $1
+          AND cr.source_collection_id = $2
+        ORDER BY cr.recommendation_rank ASC
       `;
 
       const result = await client.query(query, [this.shopDomain, collectionHandle]);
