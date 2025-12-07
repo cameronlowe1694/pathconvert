@@ -78,8 +78,13 @@ export class SimilarityEngine {
         LIMIT $4
       `;
 
+      // Parse embedding if it's a JSON string, otherwise use as-is
+      const embeddingVector = typeof sourceEmbedding === 'string'
+        ? sourceEmbedding
+        : `[${sourceEmbedding.join(',')}]`;
+
       const result = await client.query(query, [
-        `[${sourceEmbedding.join(',')}]`,
+        embeddingVector,
         this.shopDomain,
         collectionId,
         limit * 3, // Get more results to filter by threshold and child relationships
