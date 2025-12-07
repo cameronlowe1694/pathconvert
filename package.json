@@ -32,7 +32,7 @@
     "openai": "^4.20.0",
     "axios": "^1.6.0",
     "xml2js": "^0.6.2",
-    "cheerio": "^1.0.0-rc.12",
+    "cheerio": "1.0.0-rc.10",
     "cors": "^2.8.5",
     "helmet": "^7.1.0",
     "compression": "^1.7.4",
