@@ -57,11 +57,11 @@ async function runAnalysis(shop) {
     analysisProgress[shop].progress = 5;
     analysisProgress[shop].status = 'Fetching shop credentials...';
 
-    const client = await pool.connect();
     let accessToken;
+    const dbClient = await pool.connect();
 
     try {
-      const result = await client.query(
+      const result = await dbClient.query(
         'SELECT access_token FROM shop_settings WHERE shop_domain = $1',
         [shop]
       );
@@ -72,7 +72,7 @@ async function runAnalysis(shop) {
 
       accessToken = result.rows[0].access_token;
     } finally {
-      client.release();
+      dbClient.release();
     }
 
     // Step 2: Fetch collections from Shopify Admin API (10-20%)
