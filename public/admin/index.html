@@ -713,7 +713,22 @@
     window.addEventListener('DOMContentLoaded', () => {
       loadSettings();
       loadCollections();
+      checkAnalysisStatus();
     });
+
+    // Check if analysis is already running
+    async function checkAnalysisStatus() {
+      try {
+        const response = await fetch(`/api/admin/progress?shop=${shop}`);
+        const data = await response.json();
+
+        if (data.success && data.status === 'running') {
+          startProgressPolling();
+        }
+      } catch (error) {
+        console.error('Failed to check analysis status:', error);
+      }
+    }
   </script>
 </body>
 </html>

@@ -11,7 +11,10 @@ CREATE TABLE IF NOT EXISTS shop_settings (
   is_active BOOLEAN DEFAULT true,
   analysis_frequency VARCHAR(50) DEFAULT 'weekly',
   min_similarity_score DECIMAL(3,2) DEFAULT 0.70,
-  max_recommendations INTEGER DEFAULT 3
+  min_similarity_threshold DECIMAL(3,2) DEFAULT 0.70,
+  max_recommendations INTEGER DEFAULT 3,
+  analysis_progress INTEGER DEFAULT 0,
+  button_style JSONB
 );
 
 -- Collections table with vector embeddings
