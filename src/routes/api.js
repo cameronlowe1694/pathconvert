@@ -66,7 +66,7 @@ router.get('/admin/collections', async (req, res) => {
     const client = await pool.connect();
     try {
       const result = await client.query(
-        `SELECT collection_id, handle, title, description, url, product_count, last_analyzed
+        `SELECT collection_id, handle, title, description, url, analyzed_at
          FROM collections
          WHERE shop_domain = $1
          ORDER BY title ASC`,
