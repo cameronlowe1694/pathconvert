@@ -21,9 +21,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Security middleware
+// Security middleware - configure for Shopify embedded app
 app.use(helmet({
   contentSecurityPolicy: false, // Allow embedded app
+  frameguard: false, // Allow iframe embedding in Shopify admin
 }));
 
 // Compression

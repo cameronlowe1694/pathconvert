@@ -472,6 +472,17 @@
     const shop = urlParams.get('shop') || 'example.myshopify.com';
     const host = urlParams.get('host') || '';
 
+    // Initialize App Bridge if in Shopify admin
+    if (window.shopify && host) {
+      const app = window.shopify.createApp({
+        apiKey: 'fae7538a6fc12ec615cdfc413f17638f',
+        host: host,
+      });
+      console.log('App Bridge initialized for shop:', shop);
+    } else {
+      console.log('Running in standalone mode for shop:', shop);
+    }
+
     // Progress polling state
     let progressPollInterval = null;
     let isAnalyzing = false;
