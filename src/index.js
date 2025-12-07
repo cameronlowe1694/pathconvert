@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import webhookRoutes from './routes/webhooks.js';
 import apiRoutes from './routes/api.js';
+import simpleRoutes from './routes/simple.js';
 import CollectionAnalyzer from './jobs/analyze-collections.js';
 import pool from './database/db.js';
 
@@ -52,21 +53,16 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api', authRoutes);
 app.use('/api', webhookRoutes);
 app.use('/api', apiRoutes);
+app.use('/api', simpleRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// Serve admin dashboard
+// Serve simple admin dashboard
 app.get('/', (req, res) => {
-  // If shop parameter is missing and this is not an embedded request, show instructions
-  if (!req.query.shop && !req.query.host) {
-    res.sendFile(path.join(__dirname, '../public/admin/index.html'));
-  } else {
-    // Embedded app - serve with shop parameter
-    res.sendFile(path.join(__dirname, '../public/admin/index.html'));
-  }
+  res.sendFile(path.join(__dirname, '../public/admin/simple.html'));
 });
 
 // Error handler

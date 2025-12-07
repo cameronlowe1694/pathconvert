@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PathConvert - Simple</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f6f6f7;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #202223;
+    }
+
+    p {
+      color: #6d7175;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    button {
+      width: 100%;
+      background: #008060;
+      color: white;
+      border: none;
+      padding: 16px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      background: #006e52;
+    }
+
+    button:disabled {
+      background: #c9cccf;
+      cursor: not-allowed;
+    }
+
+    .progress {
+      display: none;
+      margin-top: 30px;
+    }
+
+    .progress.active {
+      display: block;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e3e5e7;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #008060;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      color: #202223;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .progress-status {
+      color: #6d7175;
+      font-size: 14px;
+    }
+
+    .error {
+      display: none;
+      margin-top: 20px;
+      padding: 16px;
+      background: #fef1f1;
+      border: 1px solid #fecdca;
+      border-radius: 8px;
+      color: #d72c0d;
+    }
+
+    .error.active {
+      display: block;
+    }
+
+    .success {
+      display: none;
+      margin-top: 20px;
+      padding: 16px;
+      background: #f1f8f5;
+      border: 1px solid #9ac5b0;
+      border-radius: 8px;
+      color: #004c3f;
+    }
+
+    .success.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PathConvert</h1>
+    <p>Click the button below to analyze your collections and automatically add recommendation buttons to your collection pages.</p>
+
+    <button id="launch-btn" onclick="launchAnalysis()">
+      🚀 Launch Collection Buttons
+    </button>
+
+    <div id="progress" class="progress">
+      <div class="progress-text">Analyzing collections...</div>
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <div id="progress-status" class="progress-status">Starting...</div>
+    </div>
+
+    <div id="error" class="error"></div>
+    <div id="success" class="success"></div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const shop = urlParams.get('shop') || 'sports-clothing-test.myshopify.com';
+
+    let pollInterval = null;
+
+    async function launchAnalysis() {
+      const btn = document.getElementById('launch-btn');
+      const progress = document.getElementById('progress');
+      const error = document.getElementById('error');
+      const success = document.getElementById('success');
+
+      // Reset UI
+      btn.disabled = true;
+      btn.textContent = 'Working...';
+      progress.classList.add('active');
+      error.classList.remove('active');
+      success.classList.remove('active');
+
+      try {
+        // Start analysis
+        const response = await fetch(`/api/simple/analyze?shop=${shop}`, {
+          method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || 'Analysis failed');
+        }
+
+        // Poll for progress
+        pollInterval = setInterval(checkProgress, 2000);
+        checkProgress(); // Check immediately
+
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    async function checkProgress() {
+      try {
+        const response = await fetch(`/api/simple/progress?shop=${shop}`);
+        const data = await response.json();
+
+        if (data.complete) {
+          clearInterval(pollInterval);
+          showSuccess(data.message, data.collections);
+        } else if (data.error) {
+          clearInterval(pollInterval);
+          showError(data.error);
+        } else {
+          updateProgress(data.progress, data.status);
+        }
+      } catch (err) {
+        clearInterval(pollInterval);
+        showError('Failed to check progress');
+      }
+    }
+
+    function updateProgress(percent, status) {
+      document.getElementById('progress-fill').style.width = percent + '%';
+      document.getElementById('progress-status').textContent = status;
+    }
+
+    function showError(message) {
+      const btn = document.getElementById('launch-btn');
+      const progress = document.getElementById('progress');
+      const error = document.getElementById('error');
+
+      btn.disabled = false;
+      btn.textContent = '🚀 Launch Collection Buttons';
+      progress.classList.remove('active');
+      error.textContent = message;
+      error.classList.add('active');
+    }
+
+    function showSuccess(message, collections) {
+      const btn = document.getElementById('launch-btn');
+      const progress = document.getElementById('progress');
+      const success = document.getElementById('success');
+
+      btn.disabled = false;
+      btn.textContent = '🚀 Launch Collection Buttons';
+      progress.classList.remove('active');
+
+      success.innerHTML = `
+        <strong>✓ Success!</strong><br>
+        ${message}<br>
+        <small>Analyzed ${collections} collections. Recommendation buttons are now live on your collection pages!</small>
+      `;
+      success.classList.add('active');
+    }
+  </script>
+</body>
+</html>
