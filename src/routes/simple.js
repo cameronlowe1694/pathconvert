@@ -1,6 +1,7 @@
 import express from 'express';
 import pool from '../database/db.js';
 import SitemapParser from '../services/sitemap-parser.js';
+import SimilarityEngine from '../services/similarity-engine.js';
 import OpenAI from 'openai';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -135,9 +136,9 @@ async function runAnalysis(shop) {
     }
 
     analysisProgress[shop].progress = 70;
-    analysisProgress[shop].status = 'Calculating similarities...';
+    analysisProgress[shop].status = 'Storing collections in database...';
 
-    // Step 3: Calculate similarities and store recommendations
+    // Step 3: Store collections in database
     const client = await pool.connect();
     try {
       // Clear old data
@@ -153,10 +154,17 @@ async function runAnalysis(shop) {
         );
       }
 
+      analysisProgress[shop].progress = 75;
+      analysisProgress[shop].status = 'Calculating similarities...';
+
+      // Step 4: Calculate similarities using vector embeddings
+      const similarityEngine = new SimilarityEngine(shop);
+      await similarityEngine.calculateAllSimilarities(3, 0.70);
+
       analysisProgress[shop].progress = 85;
       analysisProgress[shop].status = 'Installing buttons on your store...';
 
-      // Step 4: Install script tag (optional - may fail on dev stores)
+      // Step 5: Install script tag (optional - may fail on dev stores)
       try {
         await installScriptTag(shop);
         analysisProgress[shop].scriptTagInstalled = true;
