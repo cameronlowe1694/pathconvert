@@ -227,4 +227,33 @@ async function installScriptTag(shop) {
   }
 }
 
+// Debug endpoint to check database contents
+router.get('/simple/debug', async (req, res) => {
+  const shop = req.query.shop;
+  const client = await pool.connect();
+
+  try {
+    const collections = await client.query(
+      'SELECT handle, title FROM collections WHERE shop_domain = $1',
+      [shop]
+    );
+
+    const recommendations = await client.query(
+      'SELECT source_collection_id, target_collection_id, similarity_score FROM collection_recommendations WHERE shop_domain = $1 LIMIT 10',
+      [shop]
+    );
+
+    res.json({
+      collections: collections.rows,
+      recommendations: recommendations.rows,
+      count: {
+        collections: collections.rows.length,
+        recommendations: recommendations.rowCount
+      }
+    });
+  } finally {
+    client.release();
+  }
+});
+
 export default router;
