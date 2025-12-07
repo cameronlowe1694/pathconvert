@@ -59,9 +59,9 @@ router.post('/analytics/click', express.json(), async (req, res) => {
 // Admin endpoints (protected)
 
 // Get all collections for shop
-router.get('/admin/collections', verifyRequest, async (req, res) => {
+router.get('/admin/collections', async (req, res) => {
   try {
-    const { shopDomain } = req;
+    const shopDomain = req.query.shop;
 
     const client = await pool.connect();
     try {
@@ -87,9 +87,9 @@ router.get('/admin/collections', verifyRequest, async (req, res) => {
 });
 
 // Get collection with related collections
-router.get('/admin/collections/:id', verifyRequest, async (req, res) => {
+router.get('/admin/collections/:id', async (req, res) => {
   try {
-    const { shopDomain } = req;
+    const shopDomain = req.query.shop;
     const { id } = req.params;
 
     const client = await pool.connect();
@@ -129,9 +129,9 @@ router.get('/admin/collections/:id', verifyRequest, async (req, res) => {
 });
 
 // Get shop settings
-router.get('/admin/settings', verifyRequest, async (req, res) => {
+router.get('/admin/settings', async (req, res) => {
   try {
-    const { shopDomain } = req;
+    const shopDomain = req.query.shop;
 
     const client = await pool.connect();
     try {
@@ -162,9 +162,9 @@ router.get('/admin/settings', verifyRequest, async (req, res) => {
 });
 
 // Update shop settings
-router.put('/admin/settings', verifyRequest, express.json(), async (req, res) => {
+router.put('/admin/settings', express.json(), async (req, res) => {
   try {
-    const { shopDomain } = req;
+    const shopDomain = req.query.shop;
     const { is_active, max_recommendations, min_similarity_threshold, button_style } = req.body;
 
     const client = await pool.connect();
@@ -191,9 +191,9 @@ router.put('/admin/settings', verifyRequest, express.json(), async (req, res) =>
 });
 
 // Trigger collection analysis
-router.post('/admin/analyze', verifyRequest, express.json(), async (req, res) => {
+router.post('/admin/analyze', express.json(), async (req, res) => {
   try {
-    const { shopDomain } = req;
+    const shopDomain = req.query.shop;
 
     // Queue analysis job
     const client = await pool.connect();
@@ -229,9 +229,9 @@ router.post('/admin/analyze', verifyRequest, express.json(), async (req, res) =>
 });
 
 // Get analysis progress
-router.get('/admin/progress', verifyRequest, async (req, res) => {
+router.get('/admin/progress', async (req, res) => {
   try {
-    const { shopDomain } = req;
+    const shopDomain = req.query.shop;
 
     const client = await pool.connect();
     try {
@@ -265,9 +265,9 @@ router.get('/admin/progress', verifyRequest, async (req, res) => {
 });
 
 // Get analytics data
-router.get('/admin/analytics', verifyRequest, async (req, res) => {
+router.get('/admin/analytics', async (req, res) => {
   try {
-    const { shopDomain } = req;
+    const shopDomain = req.query.shop;
 
     const client = await pool.connect();
     try {
