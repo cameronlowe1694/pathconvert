@@ -22,6 +22,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Security middleware - configure for Shopify embedded app
+// IMPORTANT: Disable X-Frame-Options to allow Shopify iframe embedding
+app.use((req, res, next) => {
+  res.removeHeader('X-Frame-Options');
+  next();
+});
+
 app.use(helmet({
   contentSecurityPolicy: false, // Allow embedded app
   frameguard: false, // Allow iframe embedding in Shopify admin
