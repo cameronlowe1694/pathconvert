@@ -64,8 +64,8 @@ router.get('/auth/callback', async (req, res) => {
       client.release();
     }
 
-    // Redirect to app
-    const redirectUrl = `https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}`;
+    // Redirect to embedded app with shop parameter
+    const redirectUrl = `https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}?shop=${shop}`;
     res.redirect(redirectUrl);
   } catch (error) {
     console.error('Auth callback error:', error);

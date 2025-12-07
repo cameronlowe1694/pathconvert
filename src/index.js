@@ -53,7 +53,13 @@ app.get('/health', (req, res) => {
 
 // Serve admin dashboard
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/admin/index.html'));
+  // If shop parameter is missing and this is not an embedded request, show instructions
+  if (!req.query.shop && !req.query.host) {
+    res.sendFile(path.join(__dirname, '../public/admin/index.html'));
+  } else {
+    // Embedded app - serve with shop parameter
+    res.sendFile(path.join(__dirname, '../public/admin/index.html'));
+  }
 });
 
 // Error handler
