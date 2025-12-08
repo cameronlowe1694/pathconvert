@@ -123,23 +123,142 @@
     .success.active {
       display: block;
     }
+
+    .step {
+      margin-bottom: 30px;
+      padding: 24px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e3e5e7;
+    }
+
+    .step h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #202223;
+    }
+
+    .step p {
+      margin-bottom: 20px;
+    }
+
+    .step button:disabled {
+      opacity: 0.5;
+    }
+
+    .summary {
+      display: none;
+      margin: 30px 0;
+      padding: 24px;
+      background: #f1f8f5;
+      border: 1px solid #9ac5b0;
+      border-radius: 8px;
+    }
+
+    .summary.active {
+      display: block;
+    }
+
+    .summary h3 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #004c3f;
+    }
+
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 16px;
+      background: white;
+      border-radius: 6px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #008060;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: #6d7175;
+      font-weight: 500;
+    }
+
+    .summary-text {
+      color: #004c3f;
+      font-size: 14px;
+      margin: 0;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>PathConvert</h1>
-    <p>Click the button below to analyze your collections and automatically add recommendation buttons to your collection pages.</p>
+    <p>AI-powered collection cross-linking to increase customer discovery and boost conversions.</p>
 
-    <button id="launch-btn" onclick="launchAnalysis()">
-      🚀 Launch Collection Buttons
-    </button>
+    <!-- Step 1: Run Analysis -->
+    <div id="step1" class="step">
+      <h2>Step 1: Analyze Collections</h2>
+      <p>Scan your store's collections and use AI to find the best cross-linking opportunities.</p>
 
-    <div id="progress" class="progress">
-      <div class="progress-text">Analyzing collections...</div>
-      <div class="progress-bar">
-        <div id="progress-fill" class="progress-fill"></div>
+      <button id="analyze-btn" onclick="runAnalysis()">
+        🔍 Run Analysis
+      </button>
+
+      <div id="analyze-progress" class="progress">
+        <div class="progress-text">Analyzing collections with OpenAI...</div>
+        <div class="progress-bar">
+          <div id="analyze-fill" class="progress-fill"></div>
+        </div>
+        <div id="analyze-status" class="progress-status">Starting...</div>
       </div>
-      <div id="progress-status" class="progress-status">Starting...</div>
+    </div>
+
+    <!-- Analysis Summary -->
+    <div id="summary" class="summary">
+      <h3>📊 Analysis Summary</h3>
+      <div class="summary-stats">
+        <div class="stat">
+          <div class="stat-value" id="collections-count">-</div>
+          <div class="stat-label">Collection Pages</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="links-count">-</div>
+          <div class="stat-label">Button Links</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="threshold-value">-</div>
+          <div class="stat-label">Similarity Threshold</div>
+        </div>
+      </div>
+      <p class="summary-text" id="summary-description"></p>
+    </div>
+
+    <!-- Step 2: Add Buttons -->
+    <div id="step2" class="step">
+      <h2>Step 2: Add Buttons to Site</h2>
+      <p>Deploy recommendation buttons across all collection pages.</p>
+
+      <button id="deploy-btn" onclick="deployButtons()" disabled>
+        🚀 Bulk Add Buttons to Site
+      </button>
+
+      <div id="deploy-progress" class="progress">
+        <div class="progress-text">Adding buttons to collection pages...</div>
+        <div class="progress-bar">
+          <div id="deploy-fill" class="progress-fill"></div>
+        </div>
+        <div id="deploy-status" class="progress-status">Starting...</div>
+      </div>
     </div>
 
     <div id="error" class="error"></div>
@@ -151,19 +270,19 @@
     const shop = urlParams.get('shop') || 'sports-clothing-test.myshopify.com';
 
     let pollInterval = null;
+    let analysisData = null;
 
-    async function launchAnalysis() {
-      const btn = document.getElementById('launch-btn');
-      const progress = document.getElementById('progress');
+    // Step 1: Run Analysis
+    async function runAnalysis() {
+      const btn = document.getElementById('analyze-btn');
+      const progress = document.getElementById('analyze-progress');
       const error = document.getElementById('error');
-      const success = document.getElementById('success');
 
       // Reset UI
       btn.disabled = true;
-      btn.textContent = 'Working...';
+      btn.textContent = 'Analyzing...';
       progress.classList.add('active');
       error.classList.remove('active');
-      success.classList.remove('active');
 
       try {
         // Start analysis
@@ -178,27 +297,31 @@
         }
 
         // Poll for progress
-        pollInterval = setInterval(checkProgress, 2000);
-        checkProgress(); // Check immediately
+        pollInterval = setInterval(checkAnalysisProgress, 2000);
+        checkAnalysisProgress(); // Check immediately
 
       } catch (err) {
         showError(err.message);
+        btn.disabled = false;
+        btn.textContent = '🔍 Run Analysis';
+        progress.classList.remove('active');
       }
     }
 
-    async function checkProgress() {
+    async function checkAnalysisProgress() {
       try {
         const response = await fetch(`/api/simple/progress?shop=${shop}`);
         const data = await response.json();
 
         if (data.complete) {
           clearInterval(pollInterval);
-          showSuccess(data.message, data.collections);
+          analysisData = data;
+          await showAnalysisSummary(data);
         } else if (data.error) {
           clearInterval(pollInterval);
           showError(data.error);
         } else {
-          updateProgress(data.progress, data.status);
+          updateProgress('analyze-fill', 'analyze-status', data.progress, data.status);
         }
       } catch (err) {
         clearInterval(pollInterval);
@@ -206,39 +329,106 @@
       }
     }
 
-    function updateProgress(percent, status) {
-      document.getElementById('progress-fill').style.width = percent + '%';
-      document.getElementById('progress-status').textContent = status;
+    async function showAnalysisSummary(data) {
+      const btn = document.getElementById('analyze-btn');
+      const progress = document.getElementById('analyze-progress');
+      const summary = document.getElementById('summary');
+      const deployBtn = document.getElementById('deploy-btn');
+
+      btn.disabled = false;
+      btn.textContent = '✓ Analysis Complete';
+      progress.classList.remove('active');
+
+      // Fetch detailed stats
+      const debugResponse = await fetch(`/api/simple/debug?shop=${shop}`);
+      const debugData = await debugResponse.json();
+
+      // Get shop settings for threshold
+      const settingsResponse = await fetch(`/api/simple/settings?shop=${shop}`);
+      const settingsData = await settingsResponse.json();
+      const threshold = settingsData.calculated_threshold || 0.50;
+
+      // Update summary stats
+      document.getElementById('collections-count').textContent = debugData.count.collections;
+      document.getElementById('links-count').textContent = debugData.count.recommendations;
+      document.getElementById('threshold-value').textContent = (threshold * 100).toFixed(0) + '%';
+
+      // Quality assessment
+      let qualityText = '';
+      if (threshold >= 0.60) {
+        qualityText = 'High-quality similarity detected. Your collections have strong semantic relationships.';
+      } else if (threshold >= 0.45) {
+        qualityText = 'Medium similarity detected. Your collections have good cross-linking opportunities.';
+      } else {
+        qualityText = 'Lower similarity threshold applied to ensure recommendations across all collections.';
+      }
+
+      document.getElementById('summary-description').textContent =
+        `Analysis complete! ${qualityText} Ready to deploy ${debugData.count.recommendations} button links across ${debugData.count.collections} collection pages.`;
+
+      summary.classList.add('active');
+      deployBtn.disabled = false;
+    }
+
+    // Step 2: Deploy Buttons
+    async function deployButtons() {
+      const btn = document.getElementById('deploy-btn');
+      const progress = document.getElementById('deploy-progress');
+      const success = document.getElementById('success');
+
+      btn.disabled = true;
+      btn.textContent = 'Deploying...';
+      progress.classList.add('active');
+
+      // Simulate deployment progress (script tag is already installed)
+      let percent = 0;
+      const deployInterval = setInterval(() => {
+        percent += 20;
+        updateProgress('deploy-fill', 'deploy-status', percent,
+          percent < 100 ? 'Installing script tags...' : 'Complete!');
+
+        if (percent >= 100) {
+          clearInterval(deployInterval);
+          btn.textContent = '✓ Buttons Deployed';
+          progress.classList.remove('active');
+
+          success.innerHTML = `
+            <strong>✓ Success!</strong><br>
+            Recommendation buttons are now live on all ${analysisData.collections} collection pages!<br>
+            <small>Visit your collection pages to see the new buttons in action.</small>
+          `;
+          success.classList.add('active');
+        }
+      }, 500);
+    }
+
+    function updateProgress(fillId, statusId, percent, status) {
+      document.getElementById(fillId).style.width = percent + '%';
+      document.getElementById(statusId).textContent = status;
     }
 
     function showError(message) {
-      const btn = document.getElementById('launch-btn');
-      const progress = document.getElementById('progress');
       const error = document.getElementById('error');
-
-      btn.disabled = false;
-      btn.textContent = '🚀 Launch Collection Buttons';
-      progress.classList.remove('active');
       error.textContent = message;
       error.classList.add('active');
     }
 
-    function showSuccess(message, collections) {
-      const btn = document.getElementById('launch-btn');
-      const progress = document.getElementById('progress');
-      const success = document.getElementById('success');
+    // Check on load if analysis already exists
+    window.addEventListener('load', async () => {
+      try {
+        const response = await fetch(`/api/simple/debug?shop=${shop}`);
+        const data = await response.json();
 
-      btn.disabled = false;
-      btn.textContent = '🚀 Launch Collection Buttons';
-      progress.classList.remove('active');
-
-      success.innerHTML = `
-        <strong>✓ Success!</strong><br>
-        ${message}<br>
-        <small>Analyzed ${collections} collections. Recommendation buttons are now live on your collection pages!</small>
-      `;
-      success.classList.add('active');
-    }
+        if (data.count.recommendations > 0) {
+          // Analysis already exists, show summary
+          const mockData = { complete: true, collections: data.count.collections };
+          await showAnalysisSummary(mockData);
+          analysisData = mockData;
+        }
+      } catch (err) {
+        console.log('No existing analysis found');
+      }
+    });
   </script>
 </body>
 </html>

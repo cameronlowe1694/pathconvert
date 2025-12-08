@@ -260,4 +260,28 @@ router.get('/simple/debug', async (req, res) => {
   }
 });
 
+// Settings endpoint to get shop configuration
+router.get('/simple/settings', async (req, res) => {
+  const shop = req.query.shop;
+  const client = await pool.connect();
+
+  try {
+    const result = await client.query(
+      'SELECT calculated_threshold, max_recommendations FROM shop_settings WHERE shop_domain = $1',
+      [shop]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({
+        calculated_threshold: 0.50,
+        max_recommendations: 3
+      });
+    }
+
+    res.json(result.rows[0]);
+  } finally {
+    client.release();
+  }
+});
+
 export default router;
