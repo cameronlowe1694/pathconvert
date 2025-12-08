@@ -98,36 +98,42 @@ app.use((err, req, res, next) => {
 // Scheduled job: Weekly collection re-analysis
 const schedule = process.env.ANALYSIS_SCHEDULE || '0 2 * * 0'; // Every Sunday at 2 AM
 
-cron.schedule(schedule, async () => {
-  console.log('Running scheduled collection analysis...');
+try {
+  cron.schedule(schedule, async () => {
+    console.log('Running scheduled collection analysis...');
 
-  try {
-    const client = await pool.connect();
     try {
-      // Get all active shops
-      const result = await client.query(
-        'SELECT shop_domain FROM shop_settings WHERE is_active = true'
-      );
+      const client = await pool.connect();
+      try {
+        // Get all active shops
+        const result = await client.query(
+          'SELECT shop_domain FROM shop_settings WHERE is_active = true'
+        );
 
-      for (const row of result.rows) {
-        console.log(`Analyzing shop: ${row.shop_domain}`);
+        for (const row of result.rows) {
+          console.log(`Analyzing shop: ${row.shop_domain}`);
 
-        try {
-          const analyzer = new CollectionAnalyzer(row.shop_domain);
-          await analyzer.analyze();
-        } catch (error) {
-          console.error(`Failed to analyze ${row.shop_domain}:`, error.message);
+          try {
+            const analyzer = new CollectionAnalyzer(row.shop_domain);
+            await analyzer.analyze();
+          } catch (error) {
+            console.error(`Failed to analyze ${row.shop_domain}:`, error.message);
+          }
         }
+      } finally {
+        client.release();
       }
-    } finally {
-      client.release();
-    }
 
-    console.log('Scheduled analysis completed');
-  } catch (error) {
-    console.error('Scheduled analysis error:', error);
-  }
-});
+      console.log('Scheduled analysis completed');
+    } catch (error) {
+      console.error('Scheduled analysis error:', error);
+    }
+  });
+  console.log(`Cron job scheduled: ${schedule}`);
+} catch (error) {
+  console.error('Failed to schedule cron job:', error.message);
+  console.log('Server will continue without scheduled analysis');
+}
 
 // Start server
 app.listen(PORT, () => {
@@ -147,6 +153,21 @@ process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully...');
   await pool.end();
   process.exit(0);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Promise Rejection:', reason);
+  console.error('Promise:', promise);
+  // Don't exit the process - just log the error
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // For uncaught exceptions, we should exit after logging
+  console.error('Server will restart...');
+  process.exit(1);
 });
 
 export default app;
