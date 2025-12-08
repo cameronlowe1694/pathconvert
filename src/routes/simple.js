@@ -159,10 +159,10 @@ async function runAnalysis(shop) {
       analysisProgress[shop].progress = 75;
       analysisProgress[shop].status = 'Calculating similarities...';
 
-      // Step 4: Calculate similarities using vector embeddings
+      // Step 4: Calculate similarities using vector embeddings with adaptive threshold
       const similarityEngine = new SimilarityEngine(shop);
-      console.log('Starting similarity calculation...');
-      const simResult = await similarityEngine.calculateAllSimilarities(3, 0.50); // Lower threshold for testing
+      console.log('Starting similarity calculation with adaptive threshold...');
+      const simResult = await similarityEngine.calculateAllSimilarities(3, null); // null = use adaptive threshold
       console.log('Similarity calculation result:', simResult);
 
       analysisProgress[shop].progress = 85;

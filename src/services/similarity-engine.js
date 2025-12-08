@@ -120,8 +120,54 @@ export class SimilarityEngine {
     }
   }
 
+  // Calculate adaptive threshold based on similarity score distribution
+  calculateAdaptiveThreshold(allScores, maxRecommendations) {
+    if (allScores.length === 0) return 0.50; // Default fallback
+
+    // Sort scores descending
+    const sortedScores = [...allScores].sort((a, b) => b - a);
+
+    // Calculate statistics
+    const mean = sortedScores.reduce((a, b) => a + b, 0) / sortedScores.length;
+    const median = sortedScores[Math.floor(sortedScores.length / 2)];
+    const max = sortedScores[0];
+
+    console.log(`Score distribution: min=${sortedScores[sortedScores.length - 1].toFixed(3)}, median=${median.toFixed(3)}, mean=${mean.toFixed(3)}, max=${max.toFixed(3)}`);
+
+    // Adaptive strategy:
+    // 1. If max score is high (>0.80), use higher threshold to maintain quality
+    // 2. If max score is medium (0.60-0.80), use median-based threshold
+    // 3. If max score is low (<0.60), use lower threshold to ensure recommendations
+
+    let threshold;
+    if (max >= 0.80) {
+      // High similarity case - use 75% of median or 0.60, whichever is higher
+      threshold = Math.max(median * 0.75, 0.60);
+    } else if (max >= 0.60) {
+      // Medium similarity - use 60% of median or 0.45
+      threshold = Math.max(median * 0.60, 0.45);
+    } else {
+      // Low similarity - use 50% of median or 0.35 to ensure some recommendations
+      threshold = Math.max(median * 0.50, 0.35);
+    }
+
+    // Ensure we get at least some recommendations per collection
+    // If threshold would eliminate most recommendations, lower it
+    const scoresAboveThreshold = sortedScores.filter(s => s >= threshold).length;
+    const avgRecommendationsPerCollection = scoresAboveThreshold / (allScores.length / (maxRecommendations * 3));
+
+    if (avgRecommendationsPerCollection < maxRecommendations * 0.5) {
+      // Too few recommendations - lower threshold
+      threshold = sortedScores[Math.min(maxRecommendations * 2, sortedScores.length - 1)];
+      console.log(`Adjusted threshold to ${threshold.toFixed(3)} to ensure adequate recommendations`);
+    }
+
+    console.log(`Adaptive threshold: ${threshold.toFixed(3)} (${scoresAboveThreshold} scores above threshold)`);
+    return threshold;
+  }
+
   // Calculate similarities for all collections and store them
-  async calculateAllSimilarities(maxRecommendations = 3, minSimilarity = 0.70) {
+  async calculateAllSimilarities(maxRecommendations = 3, minSimilarity = null) {
     const client = await pool.connect();
 
     try {
@@ -136,6 +182,28 @@ export class SimilarityEngine {
       const collections = result.rows;
       console.log(`Found ${collections.length} collections with embeddings`);
 
+      // First pass: calculate all similarity scores to determine adaptive threshold
+      console.log('First pass: calculating all similarity scores...');
+      const allScores = [];
+
+      for (const collection of collections) {
+        const similar = await this.findSimilarCollections(
+          collection.collection_id,
+          maxRecommendations * 3, // Get more for threshold calculation
+          0.0, // No threshold on first pass
+          client
+        );
+
+        similar.forEach(s => allScores.push(s.similarity_score));
+      }
+
+      // Calculate adaptive threshold if not provided
+      const threshold = minSimilarity !== null
+        ? minSimilarity
+        : this.calculateAdaptiveThreshold(allScores, maxRecommendations);
+
+      console.log(`Using similarity threshold: ${threshold.toFixed(3)}`);
+
       // Begin transaction
       await client.query('BEGIN');
 
@@ -144,7 +212,7 @@ export class SimilarityEngine {
 
       let totalRelations = 0;
 
-      // Calculate similarities for each collection
+      // Second pass: Calculate similarities for each collection with adaptive threshold
       for (let idx = 0; idx < collections.length; idx++) {
         const collection = collections[idx];
 
@@ -155,7 +223,7 @@ export class SimilarityEngine {
         const similar = await this.findSimilarCollections(
           collection.collection_id,
           maxRecommendations,
-          minSimilarity,
+          threshold,
           client // Pass the existing client to reuse the transaction
         );
 
@@ -179,11 +247,18 @@ export class SimilarityEngine {
 
       await client.query('COMMIT');
 
-      console.log(`Created ${totalRelations} collection recommendations`);
+      // Store the threshold used in shop_settings for reference
+      await client.query(
+        'UPDATE shop_settings SET min_similarity_threshold = $1, updated_at = NOW() WHERE shop_domain = $2',
+        [threshold, this.shopDomain]
+      );
+
+      console.log(`Created ${totalRelations} collection recommendations using threshold ${threshold.toFixed(3)}`);
 
       return {
         collectionsProcessed: collections.length,
         relationsCreated: totalRelations,
+        thresholdUsed: threshold,
       };
     } catch (error) {
       await client.query('ROLLBACK');
