@@ -12,10 +12,22 @@ CREATE TABLE IF NOT EXISTS shop_settings (
   analysis_frequency VARCHAR(50) DEFAULT 'weekly',
   min_similarity_score DECIMAL(3,2) DEFAULT 0.70,
   min_similarity_threshold DECIMAL(3,2) DEFAULT 0.70,
+  calculated_threshold DECIMAL(3,2) DEFAULT 0.50,
   max_recommendations INTEGER DEFAULT 3,
   analysis_progress INTEGER DEFAULT 0,
   button_style JSONB
 );
+
+-- Add calculated_threshold column if it doesn't exist (migration)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name='shop_settings' AND column_name='calculated_threshold'
+  ) THEN
+    ALTER TABLE shop_settings ADD COLUMN calculated_threshold DECIMAL(3,2) DEFAULT 0.50;
+  END IF;
+END $$;
 
 -- Collections table with vector embeddings
 CREATE TABLE IF NOT EXISTS collections (
