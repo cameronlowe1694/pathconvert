@@ -210,9 +210,14 @@
       <h2>Step 1: Analyze Collections</h2>
       <p>Scan your store's collections and use AI to find the best cross-linking opportunities.</p>
 
-      <button id="analyze-btn" onclick="runAnalysis()">
-        🔍 Run Analysis
-      </button>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button id="analyze-btn" onclick="runAnalysis()" style="flex: 1;">
+          🔍 Run Analysis
+        </button>
+        <button id="reanalyze-btn" onclick="refreshAnalysis()" style="display: none; background: #006e52;">
+          🔄 Re-run Analysis
+        </button>
+      </div>
 
       <div id="analyze-progress" class="progress">
         <div class="progress-text">Analyzing collections with OpenAI...</div>
@@ -346,12 +351,15 @@
 
     async function showAnalysisSummary(data) {
       const btn = document.getElementById('analyze-btn');
+      const reanalyzeBtn = document.getElementById('reanalyze-btn');
       const progress = document.getElementById('analyze-progress');
       const summary = document.getElementById('summary');
       const deployBtn = document.getElementById('deploy-btn');
 
       btn.disabled = false;
       btn.textContent = '✓ Analysis Complete';
+      btn.style.flex = '0 1 auto';  // Shrink to fit content
+      reanalyzeBtn.style.display = 'block';  // Show re-analyze button
       progress.classList.remove('active');
 
       // Fetch detailed stats
@@ -390,6 +398,7 @@
       const summary = document.getElementById('summary');
       const deployBtn = document.getElementById('deploy-btn');
       const analyzeBtn = document.getElementById('analyze-btn');
+      const reanalyzeBtn = document.getElementById('reanalyze-btn');
       const success = document.getElementById('success');
 
       // Hide summary and success message
@@ -400,9 +409,11 @@
       deployBtn.disabled = true;
       deployBtn.textContent = '🚀 Bulk Add Buttons to Site';
 
-      // Reset Step 1 button
+      // Reset Step 1 buttons
       analyzeBtn.disabled = false;
       analyzeBtn.textContent = '🔍 Run Analysis';
+      analyzeBtn.style.flex = '1';  // Full width
+      reanalyzeBtn.style.display = 'none';  // Hide re-analyze button
 
       // Automatically trigger new analysis
       runAnalysis();
