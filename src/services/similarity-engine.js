@@ -5,6 +5,71 @@ export class SimilarityEngine {
     this.shopDomain = shopDomain;
   }
 
+  // Detect gender from collection title/handle
+  detectGender(text) {
+    if (!text) return null;
+
+    const lowerText = text.toLowerCase();
+
+    // Women's patterns
+    const womensPatterns = [
+      /\bwomen'?s?\b/i,
+      /\bwoman\b/i,
+      /\bladies\b/i,
+      /\bgirl'?s?\b/i,
+      /\bfemale\b/i,
+      /\bher\b/i
+    ];
+
+    // Men's patterns
+    const mensPatterns = [
+      /\bmen'?s?\b/i,
+      /\bmale\b/i,
+      /\bguy'?s?\b/i,
+      /\bboy'?s?\b/i,
+      /\bhim\b/i,
+      /\bgents?\b/i
+    ];
+
+    // Kids patterns
+    const kidsPatterns = [
+      /\bkid'?s?\b/i,
+      /\bchildren'?s?\b/i,
+      /\btoddler'?s?\b/i,
+      /\bbaby\b/i,
+      /\binfant'?s?\b/i,
+      /\byouth\b/i
+    ];
+
+    const isWomens = womensPatterns.some(pattern => pattern.test(lowerText));
+    const isMens = mensPatterns.some(pattern => pattern.test(lowerText));
+    const isKids = kidsPatterns.some(pattern => pattern.test(lowerText));
+
+    if (isKids) return 'kids';
+    if (isWomens) return 'womens';
+    if (isMens) return 'mens';
+    return 'unisex'; // Default to unisex if no gender detected
+  }
+
+  // Check if two collections are gender-compatible
+  isGenderCompatible(sourceText, targetText) {
+    const sourceGender = this.detectGender(sourceText);
+    const targetGender = this.detectGender(targetText);
+
+    // Unisex collections are compatible with everything
+    if (sourceGender === 'unisex' || targetGender === 'unisex') {
+      return true;
+    }
+
+    // Same gender = compatible
+    if (sourceGender === targetGender) {
+      return true;
+    }
+
+    // Different specific genders = not compatible
+    return false;
+  }
+
   // Check if target URL is a child of source URL (Colab workflow logic)
   isChildCollection(sourceUrl, targetUrl) {
     // Remove trailing slashes for comparison
@@ -47,9 +112,9 @@ export class SimilarityEngine {
     const shouldRelease = !existingClient;
 
     try {
-      // Get the source collection's embedding and URL
+      // Get the source collection's embedding, URL, and title
       const sourceResult = await client.query(
-        'SELECT embedding, url FROM collections WHERE shop_domain = $1 AND collection_id = $2',
+        'SELECT embedding, url, title, handle FROM collections WHERE shop_domain = $1 AND collection_id = $2',
         [this.shopDomain, collectionId]
       );
 
@@ -59,6 +124,8 @@ export class SimilarityEngine {
 
       const sourceEmbedding = sourceResult.rows[0].embedding;
       const sourceUrl = sourceResult.rows[0].url;
+      const sourceTitle = sourceResult.rows[0].title;
+      const sourceHandle = sourceResult.rows[0].handle;
 
       // Use pgvector's cosine distance operator
       // Note: pgvector uses <=> for cosine distance, which is (1 - cosine similarity)
@@ -91,11 +158,13 @@ export class SimilarityEngine {
         limit * 3, // Get more results to filter by threshold and child relationships
       ]);
 
-      // Filter by child relationship and minimum similarity threshold
+      // Filter by child relationship, gender compatibility, and minimum similarity threshold
       // Per Colab: Use 0.99 threshold for child relationships, 0.85 for others
-      console.log(`Found ${result.rows.length} potential matches for ${collectionId}`);
+      const sourceGender = this.detectGender(`${sourceTitle} ${sourceHandle}`);
+      console.log(`Found ${result.rows.length} potential matches for ${collectionId} (gender: ${sourceGender})`);
       result.rows.forEach(row => {
-        console.log(`  - ${row.handle}: score=${row.similarity_score}`);
+        const targetGender = this.detectGender(`${row.title} ${row.handle}`);
+        console.log(`  - ${row.handle}: score=${row.similarity_score}, gender=${targetGender}`);
       });
 
       const similarCollections = result.rows
@@ -105,6 +174,17 @@ export class SimilarityEngine {
           if (isChild) {
             // Higher threshold for child collections to avoid linking
             return row.similarity_score >= 0.99;
+          }
+
+          // Check gender compatibility
+          const isGenderCompatible = this.isGenderCompatible(
+            `${sourceTitle} ${sourceHandle}`,
+            `${row.title} ${row.handle}`
+          );
+
+          if (!isGenderCompatible) {
+            console.log(`  ✗ Filtered out ${row.handle} due to gender mismatch`);
+            return false;
           }
 
           return row.similarity_score >= minSimilarity;
