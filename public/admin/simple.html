@@ -205,14 +205,14 @@
     <h1>PathConvert</h1>
     <p>AI-powered collection cross-linking to increase customer discovery and boost conversions.</p>
 
-    <!-- Step 1: Run Analysis -->
-    <div id="step1" class="step">
-      <h2>Step 1: Analyze Collections</h2>
-      <p>Scan your store's collections and use AI to find the best cross-linking opportunities.</p>
+    <!-- Main Action -->
+    <div id="main-action" class="step">
+      <h2>Analyze & Deploy</h2>
+      <p>Scan your collections with AI, find cross-linking opportunities, and deploy buttons automatically.</p>
 
       <div style="display: flex; gap: 10px; align-items: center;">
         <button id="analyze-btn" onclick="runAnalysis()" style="flex: 1;">
-          🔍 Run Analysis
+          🚀 Analyze & Deploy Buttons
         </button>
         <button id="reanalyze-btn" onclick="refreshAnalysis()" style="display: none; background: #006e52;">
           🔄 Re-run Analysis
@@ -228,23 +228,10 @@
       </div>
     </div>
 
-    <!-- Analysis Summary -->
+    <!-- Results Summary -->
     <div id="summary" class="summary">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0;">📊 Analysis Summary</h3>
-        <button onclick="refreshAnalysis()" style="
-          background: #008060;
-          color: white;
-          border: none;
-          padding: 8px 16px;
-          font-size: 14px;
-          font-weight: 600;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: background 0.2s;
-        " onmouseover="this.style.background='#006e52'" onmouseout="this.style.background='#008060'">
-          🔄 Refresh Analysis
-        </button>
+        <h3 style="margin: 0;">✓ Buttons Deployed Successfully</h3>
       </div>
       <div class="summary-stats">
         <div class="stat">
@@ -253,36 +240,26 @@
         </div>
         <div class="stat">
           <div class="stat-value" id="links-count">-</div>
-          <div class="stat-label">Button Links</div>
+          <div class="stat-label">Active Button Links</div>
         </div>
         <div class="stat">
           <div class="stat-value" id="threshold-value">-</div>
-          <div class="stat-label">Similarity Threshold</div>
+          <div class="stat-label">AI Match Quality</div>
         </div>
       </div>
       <p class="summary-text" id="summary-description"></p>
-    </div>
 
-    <!-- Step 2: Add Buttons -->
-    <div id="step2" class="step">
-      <h2>Step 2: Add Buttons to Site</h2>
-      <p>Deploy recommendation buttons across all collection pages.</p>
-
-      <button id="deploy-btn" onclick="deployButtons()" disabled>
-        🚀 Bulk Add Buttons to Site
-      </button>
-
-      <div id="deploy-progress" class="progress">
-        <div class="progress-text">Adding buttons to collection pages...</div>
-        <div class="progress-bar">
-          <div id="deploy-fill" class="progress-fill"></div>
-        </div>
-        <div id="deploy-status" class="progress-status">Starting...</div>
+      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #9ac5b0;">
+        <p style="margin: 0 0 16px 0; color: #004c3f; font-weight: 500;">Next Steps:</p>
+        <ul style="margin: 0; padding-left: 20px; color: #004c3f; line-height: 1.8;">
+          <li>Visit your collection pages to see the recommendation buttons live</li>
+          <li>Add new collections anytime and click "Re-run Analysis" to update</li>
+          <li>Buttons automatically update when you re-analyze your store</li>
+        </ul>
       </div>
     </div>
 
     <div id="error" class="error"></div>
-    <div id="success" class="success"></div>
   </div>
 
   <script>
@@ -354,10 +331,9 @@
       const reanalyzeBtn = document.getElementById('reanalyze-btn');
       const progress = document.getElementById('analyze-progress');
       const summary = document.getElementById('summary');
-      const deployBtn = document.getElementById('deploy-btn');
 
       btn.disabled = false;
-      btn.textContent = '✓ Analysis Complete';
+      btn.textContent = '✓ Deployed';
       btn.style.flex = '0 1 auto';  // Shrink to fit content
       reanalyzeBtn.style.display = 'block';  // Show re-analyze button
       progress.classList.remove('active');
@@ -379,76 +355,36 @@
       // Quality assessment
       let qualityText = '';
       if (threshold >= 0.60) {
-        qualityText = 'High-quality similarity detected. Your collections have strong semantic relationships.';
+        qualityText = 'High-quality AI matches found! Your collections have strong semantic relationships.';
       } else if (threshold >= 0.45) {
-        qualityText = 'Medium similarity detected. Your collections have good cross-linking opportunities.';
+        qualityText = 'Good AI matches found! Your collections have solid cross-linking opportunities.';
       } else {
-        qualityText = 'Lower similarity threshold applied to ensure recommendations across all collections.';
+        qualityText = 'AI matches optimized to ensure recommendations across all collections.';
       }
 
       document.getElementById('summary-description').textContent =
-        `Analysis complete! ${qualityText} Ready to deploy ${debugData.count.recommendations} button links across ${debugData.count.collections} collection pages.`;
+        `${qualityText} Recommendation buttons are now live on all ${debugData.count.collections} collection pages with ${debugData.count.recommendations} active links.`;
 
       summary.classList.add('active');
-      deployBtn.disabled = false;
     }
 
     // Refresh Analysis
     async function refreshAnalysis() {
       const summary = document.getElementById('summary');
-      const deployBtn = document.getElementById('deploy-btn');
       const analyzeBtn = document.getElementById('analyze-btn');
       const reanalyzeBtn = document.getElementById('reanalyze-btn');
-      const success = document.getElementById('success');
 
-      // Hide summary and success message
+      // Hide summary
       summary.classList.remove('active');
-      success.classList.remove('active');
 
-      // Reset Step 2 button
-      deployBtn.disabled = true;
-      deployBtn.textContent = '🚀 Bulk Add Buttons to Site';
-
-      // Reset Step 1 buttons
+      // Reset buttons
       analyzeBtn.disabled = false;
-      analyzeBtn.textContent = '🔍 Run Analysis';
+      analyzeBtn.textContent = '🚀 Analyze & Deploy Buttons';
       analyzeBtn.style.flex = '1';  // Full width
       reanalyzeBtn.style.display = 'none';  // Hide re-analyze button
 
       // Automatically trigger new analysis
       runAnalysis();
-    }
-
-    // Step 2: Deploy Buttons
-    async function deployButtons() {
-      const btn = document.getElementById('deploy-btn');
-      const progress = document.getElementById('deploy-progress');
-      const success = document.getElementById('success');
-
-      btn.disabled = true;
-      btn.textContent = 'Deploying...';
-      progress.classList.add('active');
-
-      // Simulate deployment progress (script tag is already installed)
-      let percent = 0;
-      const deployInterval = setInterval(() => {
-        percent += 20;
-        updateProgress('deploy-fill', 'deploy-status', percent,
-          percent < 100 ? 'Installing script tags...' : 'Complete!');
-
-        if (percent >= 100) {
-          clearInterval(deployInterval);
-          btn.textContent = '✓ Buttons Deployed';
-          progress.classList.remove('active');
-
-          success.innerHTML = `
-            <strong>✓ Success!</strong><br>
-            Recommendation buttons are now live on all ${analysisData.collections} collection pages!<br>
-            <small>Visit your collection pages to see the new buttons in action.</small>
-          `;
-          success.classList.add('active');
-        }
-      }, 500);
     }
 
     function updateProgress(fillId, statusId, percent, status) {
