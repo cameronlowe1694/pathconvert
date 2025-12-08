@@ -40,7 +40,20 @@ app.use(compression());
 
 // CORS for Shopify embedded app
 app.use(cors({
-  origin: /\.myshopify\.com$/,
+  origin: function(origin, callback) {
+    // Allow requests from Shopify domains and our own domain
+    const allowedOrigins = [
+      /\.myshopify\.com$/,
+      /admin\.shopify\.com$/,
+      /pathconvert\.onrender\.com$/
+    ];
+
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    const isAllowed = allowedOrigins.some(pattern => pattern.test(origin));
+    callback(null, isAllowed);
+  },
   credentials: true,
 }));
 
