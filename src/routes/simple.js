@@ -147,11 +147,13 @@ async function runAnalysis(shop) {
 
       // Store collections
       for (const col of collections) {
+        console.log(`Inserting collection: ${col.handle}`);
         await client.query(
           `INSERT INTO collections (shop_domain, collection_id, handle, title, h1_tag, description, url, embedding)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
           [shop, col.handle, col.handle, col.title, col.h1, col.metaDesc, col.url, JSON.stringify(col.embedding)]
         );
+        console.log(`✓ Inserted ${col.handle} with embedding length ${col.embedding.length}`);
       }
 
       analysisProgress[shop].progress = 75;

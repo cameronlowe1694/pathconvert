@@ -42,8 +42,9 @@ export class SimilarityEngine {
   }
 
   // Find similar collections for a given collection using pgvector
-  async findSimilarCollections(collectionId, limit = 5, minSimilarity = 0.85) {
-    const client = await pool.connect();
+  async findSimilarCollections(collectionId, limit = 5, minSimilarity = 0.85, existingClient = null) {
+    const client = existingClient || await pool.connect();
+    const shouldRelease = !existingClient;
 
     try {
       // Get the source collection's embedding and URL
@@ -113,7 +114,9 @@ export class SimilarityEngine {
       console.log(`After filtering: ${similarCollections.length} recommendations for ${collectionId}`);
       return similarCollections;
     } finally {
-      client.release();
+      if (shouldRelease) {
+        client.release();
+      }
     }
   }
 
@@ -152,7 +155,8 @@ export class SimilarityEngine {
         const similar = await this.findSimilarCollections(
           collection.collection_id,
           maxRecommendations,
-          minSimilarity
+          minSimilarity,
+          client // Pass the existing client to reuse the transaction
         );
 
         // Store recommendations
