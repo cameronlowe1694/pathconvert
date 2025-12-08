@@ -32,58 +32,50 @@
       const container = document.createElement('div');
       container.className = 'pathconvert-recommendations';
       container.style.cssText = `
-        margin: 40px auto;
-        padding: 30px 20px;
-        max-width: 1200px;
-        background: #f9f9f9;
-        border-radius: 8px;
+        margin: 20px 0;
+        padding: 0;
       `;
 
-      // Add heading
-      const heading = document.createElement('h3');
-      heading.textContent = 'You might also like';
-      heading.style.cssText = `
-        margin: 0 0 20px 0;
-        font-size: 24px;
-        font-weight: 600;
-        text-align: center;
-        color: #333;
-      `;
-      container.appendChild(heading);
-
-      // Create grid for recommendation buttons
+      // Create horizontal flex container for buttons (left-aligned)
       const grid = document.createElement('div');
       grid.style.cssText = `
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
       `;
 
-      // Add each recommendation as a button/card
+      // Add each recommendation as a compact button
       data.related.forEach(collection => {
         const card = document.createElement('a');
         card.href = collection.url;
         card.className = 'pathconvert-collection-card';
         card.style.cssText = `
-          display: block;
-          padding: 20px;
-          background: white;
-          border: 1px solid #e0e0e0;
-          border-radius: 6px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 8px 16px;
+          background: #f5f5f5;
+          border: 1px solid #ddd;
+          border-radius: 4px;
           text-decoration: none;
           color: #333;
+          font-size: 14px;
+          font-weight: 400;
+          text-align: center;
           transition: all 0.2s ease;
           cursor: pointer;
+          white-space: nowrap;
         `;
 
         // Hover effect
         card.addEventListener('mouseenter', () => {
-          card.style.transform = 'translateY(-2px)';
-          card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+          card.style.background = '#e8e8e8';
+          card.style.borderColor = '#999';
         });
         card.addEventListener('mouseleave', () => {
-          card.style.transform = 'translateY(0)';
-          card.style.boxShadow = 'none';
+          card.style.background = '#f5f5f5';
+          card.style.borderColor = '#ddd';
         });
 
         // Track click
@@ -99,42 +91,28 @@
           }).catch(err => console.error('PathConvert: Analytics error', err));
         });
 
-        // Card content
-        const title = document.createElement('div');
-        title.textContent = collection.title;
-        title.style.cssText = `
-          font-size: 16px;
-          font-weight: 500;
-          margin-bottom: 8px;
-        `;
-
-        const similarity = document.createElement('div');
-        similarity.textContent = `${Math.round(collection.similarity_score * 100)}% match`;
-        similarity.style.cssText = `
-          font-size: 12px;
-          color: #008060;
-          font-weight: 600;
-        `;
-
-        card.appendChild(title);
-        card.appendChild(similarity);
+        // Button text (centered)
+        card.textContent = collection.title;
         grid.appendChild(card);
       });
 
       container.appendChild(grid);
 
-      // Insert after collection description or at the top of main content
+      // Insert after collection title/heading to align with H1
       const insertionPoint =
-        document.querySelector('.collection-description') ||
-        document.querySelector('.collection-hero') ||
+        document.querySelector('.collection__title') ||
+        document.querySelector('.collection-hero__title') ||
+        document.querySelector('h1') ||
+        document.querySelector('.page-header') ||
         document.querySelector('main') ||
-        document.querySelector('#MainContent') ||
-        document.body;
+        document.querySelector('#MainContent');
 
-      if (insertionPoint.tagName === 'MAIN' || insertionPoint.id === 'MainContent') {
-        insertionPoint.insertBefore(container, insertionPoint.firstChild);
-      } else {
+      if (insertionPoint) {
+        // Insert right after the heading element
         insertionPoint.parentNode.insertBefore(container, insertionPoint.nextSibling);
+      } else {
+        // Fallback: insert at top of body
+        document.body.insertBefore(container, document.body.firstChild);
       }
 
       console.log('PathConvert: Recommendations rendered successfully');
