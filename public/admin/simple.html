@@ -225,7 +225,22 @@
 
     <!-- Analysis Summary -->
     <div id="summary" class="summary">
-      <h3>📊 Analysis Summary</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;">📊 Analysis Summary</h3>
+        <button onclick="refreshAnalysis()" style="
+          background: #008060;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          font-size: 14px;
+          font-weight: 600;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: background 0.2s;
+        " onmouseover="this.style.background='#006e52'" onmouseout="this.style.background='#008060'">
+          🔄 Refresh Analysis
+        </button>
+      </div>
       <div class="summary-stats">
         <div class="stat">
           <div class="stat-value" id="collections-count">-</div>
@@ -368,6 +383,29 @@
 
       summary.classList.add('active');
       deployBtn.disabled = false;
+    }
+
+    // Refresh Analysis
+    async function refreshAnalysis() {
+      const summary = document.getElementById('summary');
+      const deployBtn = document.getElementById('deploy-btn');
+      const analyzeBtn = document.getElementById('analyze-btn');
+      const success = document.getElementById('success');
+
+      // Hide summary and success message
+      summary.classList.remove('active');
+      success.classList.remove('active');
+
+      // Reset Step 2 button
+      deployBtn.disabled = true;
+      deployBtn.textContent = '🚀 Bulk Add Buttons to Site';
+
+      // Reset Step 1 button
+      analyzeBtn.disabled = false;
+      analyzeBtn.textContent = '🔍 Run Analysis';
+
+      // Automatically trigger new analysis
+      runAnalysis();
     }
 
     // Step 2: Deploy Buttons
