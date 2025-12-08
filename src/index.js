@@ -135,6 +135,35 @@ try {
   console.log('Server will continue without scheduled analysis');
 }
 
+// Run database migrations on startup
+(async () => {
+  try {
+    console.log('Running database migrations...');
+    const client = await pool.connect();
+    try {
+      // Add calculated_threshold column if it doesn't exist
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name='shop_settings' AND column_name='calculated_threshold'
+          ) THEN
+            ALTER TABLE shop_settings ADD COLUMN calculated_threshold DECIMAL(3,2) DEFAULT 0.50;
+            RAISE NOTICE 'Added calculated_threshold column';
+          END IF;
+        END $$;
+      `);
+      console.log('✓ Database migrations completed');
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('⚠ Database migration warning:', error.message);
+    console.log('Server will continue - migrations may have already run');
+  }
+})();
+
 // Start server
 app.listen(PORT, () => {
   console.log(`PathConvert server running on port ${PORT}`);
