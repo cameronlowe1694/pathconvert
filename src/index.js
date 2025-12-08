@@ -32,6 +32,7 @@ app.use((req, res, next) => {
 app.use(helmet({
   contentSecurityPolicy: false, // Allow embedded app
   frameguard: false, // Allow iframe embedding in Shopify admin
+  crossOriginResourcePolicy: false, // Allow cross-origin script loading
 }));
 
 // Compression
