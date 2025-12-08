@@ -46,7 +46,14 @@ app.use(cors({
 // Body parsing - JSON only for regular routes
 app.use('/api', express.json());
 
-// Serve static files
+// Serve static files with CORS headers for storefront scripts
+app.use('/storefront', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  next();
+}, express.static(path.join(__dirname, '../public/storefront')));
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
