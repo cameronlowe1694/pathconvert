@@ -11,7 +11,9 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "db:migrate": "node src/database/migrate.js",
-    "analyze": "node src/jobs/analyze-collections.js"
+    "analyze": "node src/jobs/analyze-collections.js",
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "postinstall": "npm run build:frontend || echo 'Frontend build skipped'"
   },
   "keywords": [
     "shopify",

@@ -81,9 +81,21 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-// Serve simple admin dashboard
+// Serve React app for /app/* routes
+app.get('/app*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/app/index.html'));
+});
+
+// Serve simple admin dashboard (legacy)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/admin/simple.html'));
+  // Check if user wants the new UI
+  const useNewUI = req.query.ui === 'new';
+
+  if (useNewUI) {
+    res.sendFile(path.join(__dirname, '../public/app/index.html'));
+  } else {
+    res.sendFile(path.join(__dirname, '../public/admin/simple.html'));
+  }
 });
 
 // Error handler
