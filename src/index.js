@@ -86,15 +86,16 @@ app.get('/app*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/app/index.html'));
 });
 
-// Serve simple admin dashboard (legacy)
+// Serve Polaris UI by default (premium experience)
 app.get('/', (req, res) => {
-  // Check if user wants the new UI
-  const useNewUI = req.query.ui === 'new';
+  // Check if user wants the legacy simple UI
+  const useLegacyUI = req.query.ui === 'legacy';
 
-  if (useNewUI) {
-    res.sendFile(path.join(__dirname, '../public/app/index.html'));
-  } else {
+  if (useLegacyUI) {
     res.sendFile(path.join(__dirname, '../public/admin/simple.html'));
+  } else {
+    // Default to new Polaris UI for premium experience
+    res.sendFile(path.join(__dirname, '../public/app/index.html'));
   }
 });
 
