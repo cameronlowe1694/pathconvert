@@ -61,7 +61,7 @@ export default function DashboardPage() {
       setStats(statsData);
       setActivityLog(logData);
 
-      // Show summary if buttons already exist
+      // Show summary only if buttons actually exist
       if (statsData.totalButtons > 0) {
         setShowSummary(true);
       }

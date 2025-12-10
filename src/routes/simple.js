@@ -284,4 +284,38 @@ router.get('/simple/settings', async (req, res) => {
   }
 });
 
+// Clear all data for a shop (admin utility)
+router.post('/simple/clear', async (req, res) => {
+  const shop = req.query.shop;
+
+  if (!shop) {
+    return res.status(400).json({ success: false, error: 'Missing shop parameter' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Delete all shop data in correct order
+    await client.query('DELETE FROM recommendations WHERE shop_domain = $1', [shop]);
+    await client.query('DELETE FROM collection_embeddings WHERE shop_domain = $1', [shop]);
+    await client.query('DELETE FROM related_collections WHERE shop_domain = $1', [shop]);
+    await client.query('DELETE FROM collections WHERE shop_domain = $1', [shop]);
+    await client.query('DELETE FROM button_clicks WHERE shop_domain = $1', [shop]);
+    await client.query('DELETE FROM job_queue WHERE shop_domain = $1', [shop]);
+    // Keep shop_settings so they can reinstall without re-auth
+
+    await client.query('COMMIT');
+
+    console.log(`✓ Cleared all data for ${shop}`);
+    res.json({ success: true, message: 'All data cleared successfully' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Clear data error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
 export default router;

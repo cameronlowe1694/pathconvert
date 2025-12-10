@@ -126,11 +126,14 @@ router.post('/webhooks/app/uninstalled', express.raw({ type: 'application/json' 
 
     console.log(`App uninstalled webhook for ${shop}`);
 
-    // Clean up all shop data
+    // Clean up ALL shop data including recommendations and embeddings
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
 
+      // Delete all tables in correct order (respecting foreign keys)
+      await client.query('DELETE FROM recommendations WHERE shop_domain = $1', [shop]);
+      await client.query('DELETE FROM collection_embeddings WHERE shop_domain = $1', [shop]);
       await client.query('DELETE FROM related_collections WHERE shop_domain = $1', [shop]);
       await client.query('DELETE FROM collections WHERE shop_domain = $1', [shop]);
       await client.query('DELETE FROM button_clicks WHERE shop_domain = $1', [shop]);
@@ -139,7 +142,7 @@ router.post('/webhooks/app/uninstalled', express.raw({ type: 'application/json' 
 
       await client.query('COMMIT');
 
-      console.log(`Cleaned up data for ${shop}`);
+      console.log(`✓ Cleaned up all data for ${shop}`);
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
