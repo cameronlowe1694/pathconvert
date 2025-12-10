@@ -14,7 +14,7 @@ import PlansPage from './pages/PlansPage';
 export default function App() {
   return (
     <AppProvider i18n={{}}>
-      <BrowserRouter basename="/app">
+      <BrowserRouter>
         <AppFrame>
           <Routes>
             <Route path="/" element={<DashboardPage />} />
