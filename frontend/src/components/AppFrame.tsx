@@ -1,5 +1,4 @@
 import { Frame, Navigation } from '@shopify/polaris';
-import { useNavigate, useLocation } from 'react-router-dom';
 import {
   HomeIcon,
   ButtonIcon,
@@ -9,46 +8,49 @@ import {
   CreditCardIcon,
 } from '@shopify/polaris-icons';
 
-export default function AppFrame({ children }: { children: React.ReactNode }) {
-  const navigate = useNavigate();
-  const location = useLocation();
+interface AppFrameProps {
+  children: React.ReactNode;
+  currentPage: string;
+  onNavigate: (page: string) => void;
+}
 
+export default function AppFrame({ children, currentPage, onNavigate }: AppFrameProps) {
   const navigationItems = [
     {
-      url: '/',
       label: 'Dashboard',
       icon: HomeIcon,
-      selected: location.pathname === '/',
+      selected: currentPage === 'dashboard',
+      onClick: () => onNavigate('dashboard'),
     },
     {
-      url: '/buttons',
       label: 'Buttons',
       icon: ButtonIcon,
-      selected: location.pathname.startsWith('/buttons'),
+      selected: currentPage === 'buttons' || currentPage === 'collection-detail',
+      onClick: () => onNavigate('buttons'),
     },
     {
-      url: '/settings/ai',
       label: 'AI Settings',
       icon: SettingsIcon,
-      selected: location.pathname.startsWith('/settings'),
+      selected: currentPage === 'ai-settings',
+      onClick: () => onNavigate('ai-settings'),
     },
     {
-      url: '/sync',
       label: 'Sync',
       icon: RefreshIcon,
-      selected: location.pathname === '/sync',
+      selected: currentPage === 'sync',
+      onClick: () => onNavigate('sync'),
     },
     {
-      url: '/support',
       label: 'Support',
       icon: QuestionCircleIcon,
-      selected: location.pathname === '/support',
+      selected: currentPage === 'support',
+      onClick: () => onNavigate('support'),
     },
     {
-      url: '/plans',
       label: 'Plans',
       icon: CreditCardIcon,
-      selected: location.pathname === '/plans',
+      selected: currentPage === 'plans',
+      onClick: () => onNavigate('plans'),
     },
   ];
 
@@ -56,12 +58,7 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
     <Frame
       navigation={
         <Navigation location="/">
-          <Navigation.Section
-            items={navigationItems.map((item) => ({
-              ...item,
-              onClick: () => navigate(item.url),
-            }))}
-          />
+          <Navigation.Section items={navigationItems} />
         </Navigation>
       }
     >
