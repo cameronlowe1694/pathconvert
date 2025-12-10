@@ -10,7 +10,7 @@ import {
   FormLayout,
   Banner,
 } from '@shopify/polaris';
-import { startAnalysis } from '../utils/api';
+import { refreshAllButtons, runCleanup } from '../utils/api';
 
 export default function SyncPage() {
   const [refreshing, setRefreshing] = useState(false);
@@ -21,7 +21,7 @@ export default function SyncPage() {
   async function handleRefresh() {
     setRefreshing(true);
     try {
-      await startAnalysis();
+      await refreshAllButtons();
     } finally {
       setRefreshing(false);
     }
@@ -29,8 +29,14 @@ export default function SyncPage() {
 
   async function handleCleanup() {
     setCleaning(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setCleaning(false);
+    try {
+      await runCleanup({
+        removeDeletedTargets: cleanupDeletedTargets,
+        rebuildEmbeddings: rebuildEmbeddings,
+      });
+    } finally {
+      setCleaning(false);
+    }
   }
 
   return (

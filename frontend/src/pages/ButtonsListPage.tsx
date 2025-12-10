@@ -12,13 +12,12 @@ import {
   useIndexResourceState,
 } from '@shopify/polaris';
 import { useNavigate } from 'react-router-dom';
-import { getCollections, getRecommendations, startAnalysis } from '../utils/api';
-import type { Collection, Recommendation } from '../types';
+import { fetchCollectionsWithButtons, refreshAllButtons } from '../utils/api';
+import type { CollectionWithButtons } from '../types';
 
 export default function ButtonsListPage() {
   const navigate = useNavigate();
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [collections, setCollections] = useState<CollectionWithButtons[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -31,12 +30,8 @@ export default function ButtonsListPage() {
 
   async function loadData() {
     try {
-      const [collectionsData, recommendationsData] = await Promise.all([
-        getCollections(),
-        getRecommendations(),
-      ]);
+      const collectionsData = await fetchCollectionsWithButtons();
       setCollections(collectionsData);
-      setRecommendations(recommendationsData);
     } finally {
       setLoading(false);
     }
@@ -45,15 +40,11 @@ export default function ButtonsListPage() {
   async function handleRefresh() {
     setRefreshing(true);
     try {
-      await startAnalysis();
+      await refreshAllButtons();
       await loadData();
     } finally {
       setRefreshing(false);
     }
-  }
-
-  function getButtonCount(collectionId: string): number {
-    return recommendations.filter((r) => r.source_collection_id === collectionId).length;
   }
 
   if (loading) {
@@ -71,8 +62,6 @@ export default function ButtonsListPage() {
   }
 
   const rowMarkup = collections.map((collection, index) => {
-    const buttonCount = getButtonCount(collection.handle);
-
     return (
       <IndexTable.Row
         id={collection.id}
@@ -92,17 +81,17 @@ export default function ButtonsListPage() {
         </IndexTable.Cell>
         <IndexTable.Cell>
           <Text as="span" variant="bodyMd">
-            {buttonCount}
+            {collection.buttonCount}
           </Text>
         </IndexTable.Cell>
         <IndexTable.Cell>
           <Text as="span" variant="bodyMd" tone="subdued">
-            {new Date(collection.updated_at).toLocaleDateString()}
+            {new Date(collection.updatedAt).toLocaleDateString()}
           </Text>
         </IndexTable.Cell>
         <IndexTable.Cell>
-          <Badge tone={buttonCount > 0 ? 'success' : 'info'}>
-            {buttonCount > 0 ? 'Active' : 'No buttons'}
+          <Badge tone={collection.status === 'active' ? 'success' : 'info'}>
+            {collection.status === 'active' ? 'Active' : 'No buttons'}
           </Badge>
         </IndexTable.Cell>
       </IndexTable.Row>

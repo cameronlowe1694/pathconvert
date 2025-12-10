@@ -12,14 +12,14 @@ import {
   SkeletonPage,
   SkeletonBodyText,
 } from '@shopify/polaris';
-import { getRecommendations, getCollections } from '../utils/api';
-import type { Recommendation, Collection } from '../types';
+import { fetchCollectionsWithButtons, fetchCollectionButtons } from '../utils/api';
+import type { PathButton, Collection } from '../types';
 
 export default function CollectionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [collection, setCollection] = useState<Collection | null>(null);
-  const [buttons, setButtons] = useState<Recommendation[]>([]);
+  const [buttons, setButtons] = useState<PathButton[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,15 +28,12 @@ export default function CollectionDetailPage() {
 
   async function loadData() {
     try {
-      const [collections, recommendations] = await Promise.all([
-        getCollections(),
-        getRecommendations(),
+      const [collections, collectionButtons] = await Promise.all([
+        fetchCollectionsWithButtons(),
+        fetchCollectionButtons(id || ''),
       ]);
 
       const currentCollection = collections.find((c) => c.handle === id);
-      const collectionButtons = recommendations.filter(
-        (r) => r.source_collection_id === id
-      );
 
       setCollection(currentCollection || null);
       setButtons(collectionButtons);
