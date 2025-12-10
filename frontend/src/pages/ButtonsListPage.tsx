@@ -11,12 +11,14 @@ import {
   SkeletonBodyText,
   useIndexResourceState,
 } from '@shopify/polaris';
-import { useNavigate } from 'react-router-dom';
 import { fetchCollectionsWithButtons, refreshAllButtons } from '../utils/api';
 import type { CollectionWithButtons } from '../types';
 
-export default function ButtonsListPage() {
-  const navigate = useNavigate();
+interface ButtonsListPageProps {
+  onNavigate?: (page: string, id?: string) => void;
+}
+
+export default function ButtonsListPage({ onNavigate }: ButtonsListPageProps) {
   const [collections, setCollections] = useState<CollectionWithButtons[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -72,7 +74,7 @@ export default function ButtonsListPage() {
         <IndexTable.Cell>
           <Link
             removeUnderline
-            onClick={() => navigate(`/buttons/${collection.handle}`)}
+            onClick={() => onNavigate?.('collection-detail', collection.handle)}
           >
             <Text as="span" fontWeight="semibold">
               {collection.title}
