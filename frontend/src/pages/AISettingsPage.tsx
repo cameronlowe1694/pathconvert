@@ -19,6 +19,7 @@ export default function AISettingsPage() {
   const [autoRemove, setAutoRemove] = useState(true);
   const [syncFrequency, setSyncFrequency] = useState('weekly');
   const [buttonShape, setButtonShape] = useState('pill');
+  const [buttonAlignment, setButtonAlignment] = useState('left');
   const [colorMode, setColorMode] = useState('theme');
   const [customColor, setCustomColor] = useState('#008060');
   const [saving, setSaving] = useState(false);
@@ -91,6 +92,16 @@ export default function AISettingsPage() {
                   ]}
                   value={buttonShape}
                   onChange={setButtonShape}
+                />
+                <Select
+                  label="Button alignment"
+                  options={[
+                    { label: 'Left', value: 'left' },
+                    { label: 'Center', value: 'center' },
+                    { label: 'Right', value: 'right' },
+                  ]}
+                  value={buttonAlignment}
+                  onChange={setButtonAlignment}
                 />
                 <BlockStack gap="200">
                   <Text as="p" variant="bodyMd" fontWeight="semibold">

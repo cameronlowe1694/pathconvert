@@ -95,7 +95,7 @@ export default function CollectionDetailPage() {
               <InlineStack gap="200">
                 {buttons.map((button) => (
                   <Button key={button.id} size="slim">
-                    {button.target_collection_id}
+                    {button.targetCollectionId}
                   </Button>
                 ))}
               </InlineStack>
@@ -119,10 +119,10 @@ export default function CollectionDetailPage() {
                     <InlineStack key={button.id} align="space-between" blockAlign="center">
                       <BlockStack gap="100">
                         <Text as="p" variant="bodyMd" fontWeight="semibold">
-                          {button.target_collection_id}
+                          {button.targetCollectionId}
                         </Text>
                         <Text as="p" variant="bodySm" tone="subdued">
-                          Relevance: {(parseFloat(button.similarity_score) * 100).toFixed(0)}%
+                          Relevance: {button.relevanceScore.toFixed(0)}%
                         </Text>
                       </BlockStack>
                       <Badge tone="success">Visible</Badge>

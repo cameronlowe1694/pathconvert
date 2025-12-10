@@ -39,6 +39,12 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
       selected: location.pathname === '/sync',
     },
     {
+      url: '/support',
+      label: 'Support',
+      icon: QuestionCircleIcon,
+      selected: location.pathname === '/support',
+    },
+    {
       url: '/plans',
       label: 'Plans',
       icon: CreditCardIcon,
