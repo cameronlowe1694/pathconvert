@@ -49,6 +49,31 @@ export default function ButtonsListPage({ onNavigate }: ButtonsListPageProps) {
     }
   }
 
+  async function handleBulkDeactivate() {
+    // TODO: Implement bulk deactivate API call
+    console.log('Deactivating collections:', selectedResources);
+    // After API call:
+    // await loadData();
+  }
+
+  async function handleBulkReactivate() {
+    // TODO: Implement bulk reactivate API call
+    console.log('Reactivating collections:', selectedResources);
+    // After API call:
+    // await loadData();
+  }
+
+  const promotedBulkActions = [
+    {
+      content: 'Deactivate Buttons',
+      onAction: handleBulkDeactivate,
+    },
+    {
+      content: 'Reactivate Buttons',
+      onAction: handleBulkReactivate,
+    },
+  ];
+
   if (loading) {
     return (
       <SkeletonPage primaryAction>
@@ -119,6 +144,7 @@ export default function ButtonsListPage({ onNavigate }: ButtonsListPageProps) {
                 allResourcesSelected ? 'All' : selectedResources.length
               }
               onSelectionChange={handleSelectionChange}
+              promotedBulkActions={promotedBulkActions}
               headings={[
                 { title: 'Collection' },
                 { title: 'Buttons' },
