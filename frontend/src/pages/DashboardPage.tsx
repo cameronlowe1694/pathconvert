@@ -126,7 +126,7 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
   return (
     <Page
       title="PathConvert"
-      subtitle="AI-powered PLP buttons that boost conversions"
+      subtitle="AI-powered collection buttons that boost conversions"
     >
       <Layout>
         {/* Analysis in progress */}
