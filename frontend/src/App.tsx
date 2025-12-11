@@ -45,7 +45,7 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <DashboardPage />;
+        return <DashboardPage onNavigate={navigateTo} />;
       case 'buttons':
         return <ButtonsListPage onNavigate={navigateTo} />;
       case 'collection-detail':
@@ -59,7 +59,7 @@ export default function App() {
       case 'plans':
         return <PlansPage />;
       default:
-        return <DashboardPage />;
+        return <DashboardPage onNavigate={navigateTo} />;
     }
   };
 

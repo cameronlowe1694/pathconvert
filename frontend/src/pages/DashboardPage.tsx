@@ -22,7 +22,11 @@ import {
 } from '../utils/api';
 import type { DashboardStats, AnalysisProgress, ActivityLog } from '../types';
 
-export default function DashboardPage() {
+interface DashboardPageProps {
+  onNavigate?: (page: string) => void;
+}
+
+export default function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -259,8 +263,8 @@ export default function DashboardPage() {
                     Quick Actions
                   </Text>
                   <InlineStack gap="300">
-                    <Button url="/buttons">View All Buttons</Button>
-                    <Button url="/settings/ai">AI Settings</Button>
+                    <Button onClick={() => onNavigate?.('buttons')}>View All Buttons</Button>
+                    <Button onClick={() => onNavigate?.('ai-settings')}>AI Settings</Button>
                   </InlineStack>
                 </BlockStack>
               </Card>
