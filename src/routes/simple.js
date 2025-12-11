@@ -284,6 +284,85 @@ router.get('/simple/settings', async (req, res) => {
   }
 });
 
+// Deactivate buttons for selected collections (bulk action)
+router.post('/simple/deactivate-buttons', async (req, res) => {
+  const shop = req.query.shop;
+  const { collectionIds } = req.body;
+
+  if (!shop) {
+    return res.status(400).json({ success: false, error: 'Missing shop parameter' });
+  }
+
+  if (!collectionIds || !Array.isArray(collectionIds) || collectionIds.length === 0) {
+    return res.status(400).json({ success: false, error: 'Missing or invalid collectionIds' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Delete all recommendations where the selected collections are the SOURCE
+    // This removes all button links FROM these collections
+    const result = await client.query(
+      'DELETE FROM collection_recommendations WHERE shop_domain = $1 AND source_collection_id = ANY($2)',
+      [shop, collectionIds]
+    );
+
+    await client.query('COMMIT');
+
+    console.log(`✓ Deactivated ${result.rowCount} button links for ${collectionIds.length} collections`);
+    res.json({
+      success: true,
+      message: `Deactivated buttons for ${collectionIds.length} collections`,
+      deletedCount: result.rowCount
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Deactivate buttons error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Reactivate buttons for selected collections (bulk action)
+router.post('/simple/reactivate-buttons', async (req, res) => {
+  const shop = req.query.shop;
+  const { collectionIds } = req.body;
+
+  if (!shop) {
+    return res.status(400).json({ success: false, error: 'Missing shop parameter' });
+  }
+
+  if (!collectionIds || !Array.isArray(collectionIds) || collectionIds.length === 0) {
+    return res.status(400).json({ success: false, error: 'Missing or invalid collectionIds' });
+  }
+
+  const client = await pool.connect();
+  try {
+    // Recalculate similarities for the selected collections
+    const similarityEngine = new SimilarityEngine(shop);
+
+    let totalInserted = 0;
+    for (const collectionId of collectionIds) {
+      const result = await similarityEngine.calculateSimilaritiesForCollection(collectionId, 3);
+      totalInserted += result.insertedCount || 0;
+    }
+
+    console.log(`✓ Reactivated ${totalInserted} button links for ${collectionIds.length} collections`);
+    res.json({
+      success: true,
+      message: `Reactivated buttons for ${collectionIds.length} collections`,
+      insertedCount: totalInserted
+    });
+  } catch (error) {
+    console.error('Reactivate buttons error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
 // Clear all data for a shop (admin utility)
 router.post('/simple/clear', async (req, res) => {
   const shop = req.query.shop;

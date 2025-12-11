@@ -185,3 +185,36 @@ export async function getCollectionTitle(handle: string): Promise<string> {
   const collection = collections.find((c) => c.handle === handle);
   return collection?.title || handle;
 }
+
+// Bulk actions
+export async function deactivateButtons(collectionIds: string[]): Promise<void> {
+  const shop = await getShopParam();
+  const response = await fetch(`${API_BASE}/simple/deactivate-buttons?shop=${shop}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ collectionIds }),
+  });
+
+  const data = await response.json();
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to deactivate buttons');
+  }
+}
+
+export async function reactivateButtons(collectionIds: string[]): Promise<void> {
+  const shop = await getShopParam();
+  const response = await fetch(`${API_BASE}/simple/reactivate-buttons?shop=${shop}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ collectionIds }),
+  });
+
+  const data = await response.json();
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to reactivate buttons');
+  }
+}

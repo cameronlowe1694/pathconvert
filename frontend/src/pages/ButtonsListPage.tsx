@@ -11,7 +11,7 @@ import {
   SkeletonBodyText,
   useIndexResourceState,
 } from '@shopify/polaris';
-import { fetchCollectionsWithButtons, refreshAllButtons } from '../utils/api';
+import { fetchCollectionsWithButtons, refreshAllButtons, deactivateButtons, reactivateButtons } from '../utils/api';
 import type { CollectionWithButtons } from '../types';
 
 interface ButtonsListPageProps {
@@ -50,17 +50,21 @@ export default function ButtonsListPage({ onNavigate }: ButtonsListPageProps) {
   }
 
   async function handleBulkDeactivate() {
-    // TODO: Implement bulk deactivate API call
-    console.log('Deactivating collections:', selectedResources);
-    // After API call:
-    // await loadData();
+    try {
+      await deactivateButtons(selectedResources);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to deactivate buttons:', error);
+    }
   }
 
   async function handleBulkReactivate() {
-    // TODO: Implement bulk reactivate API call
-    console.log('Reactivating collections:', selectedResources);
-    // After API call:
-    // await loadData();
+    try {
+      await reactivateButtons(selectedResources);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to reactivate buttons:', error);
+    }
   }
 
   if (loading) {

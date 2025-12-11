@@ -349,6 +349,73 @@ export class SimilarityEngine {
     }
   }
 
+  // Calculate similarities for a specific collection
+  async calculateSimilaritiesForCollection(collectionId, maxRecommendations = 3) {
+    const client = await pool.connect();
+
+    try {
+      // Get the shop's calculated threshold from settings
+      const settingsResult = await client.query(
+        'SELECT calculated_threshold FROM shop_settings WHERE shop_domain = $1',
+        [this.shopDomain]
+      );
+
+      const threshold = settingsResult.rows[0]?.calculated_threshold || 0.50;
+
+      console.log(`Recalculating similarities for ${collectionId} with threshold ${threshold.toFixed(3)}`);
+
+      // Find similar collections using the threshold
+      const similar = await this.findSimilarCollections(
+        collectionId,
+        maxRecommendations,
+        threshold,
+        client
+      );
+
+      // Begin transaction
+      await client.query('BEGIN');
+
+      // Delete existing recommendations for this collection
+      await client.query(
+        'DELETE FROM collection_recommendations WHERE shop_domain = $1 AND source_collection_id = $2',
+        [this.shopDomain, collectionId]
+      );
+
+      // Insert new recommendations
+      let insertedCount = 0;
+      for (let i = 0; i < similar.length; i++) {
+        await client.query(
+          `INSERT INTO collection_recommendations
+           (shop_domain, source_collection_id, target_collection_id, similarity_score, recommendation_rank)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [
+            this.shopDomain,
+            collectionId,
+            similar[i].handle,
+            similar[i].similarity_score,
+            i + 1,
+          ]
+        );
+        insertedCount++;
+      }
+
+      await client.query('COMMIT');
+
+      console.log(`Created ${insertedCount} recommendations for ${collectionId}`);
+
+      return {
+        insertedCount,
+        thresholdUsed: threshold,
+      };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error(`Error calculating similarities for ${collectionId}:`, error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   // Get related collections for display (cached from database)
   async getRelatedCollections(collectionHandle) {
     const client = await pool.connect();
