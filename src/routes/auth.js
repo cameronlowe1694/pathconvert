@@ -40,14 +40,34 @@ router.get('/auth/callback', async (req, res) => {
     const { session } = callback;
     const { shop, accessToken } = session;
 
-    // Store shop settings and access token
+    // Check if this is a reinstall or new install
     const client = await pool.connect();
+    let isNewInstall = false;
+
     try {
+      // Check if shop exists
+      const existingShop = await client.query(
+        'SELECT shop_domain FROM shop_settings WHERE shop_domain = $1',
+        [shop]
+      );
+
+      isNewInstall = existingShop.rows.length === 0;
+
+      // If reinstall, clear old data
+      if (!isNewInstall) {
+        console.log(`Reinstall detected for ${shop} - clearing old data`);
+        await client.query('DELETE FROM collection_recommendations WHERE shop_domain = $1', [shop]);
+        await client.query('DELETE FROM collections WHERE shop_domain = $1', [shop]);
+        await client.query('DELETE FROM collection_link_analytics WHERE shop_domain = $1', [shop]);
+        await client.query('DELETE FROM job_queue WHERE shop_domain = $1', [shop]);
+      }
+
+      // Store/update shop settings
       await client.query(
         `INSERT INTO shop_settings (shop_domain, access_token, installed_at)
          VALUES ($1, $2, NOW())
          ON CONFLICT (shop_domain)
-         DO UPDATE SET access_token = $2, updated_at = NOW()`,
+         DO UPDATE SET access_token = $2, updated_at = NOW(), installed_at = NOW()`,
         [shop, accessToken]
       );
 
@@ -67,8 +87,10 @@ router.get('/auth/callback', async (req, res) => {
       client.release();
     }
 
-    // Redirect to embedded app with shop parameter
-    const redirectUrl = `https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}?shop=${shop}`;
+    // Redirect to embedded app
+    // For new installs, add a query param to show onboarding
+    const queryParam = isNewInstall ? '&onboarding=true' : '';
+    const redirectUrl = `https://${shop}/admin/apps/${process.env.SHOPIFY_API_KEY}?shop=${shop}${queryParam}`;
     res.redirect(redirectUrl);
   } catch (error) {
     console.error('Auth callback error:', error);
