@@ -54,6 +54,9 @@ router.get('/auth/callback', async (req, res) => {
       // Register webhooks
       await registerWebhooks(shop, accessToken);
 
+      // Install script tag for storefront
+      await installScriptTag(shop, accessToken);
+
       // Trigger initial collection analysis
       await client.query(
         `INSERT INTO job_queue (shop_domain, job_type, status, payload)
@@ -72,6 +75,47 @@ router.get('/auth/callback', async (req, res) => {
     res.status(500).json({ error: 'Authentication failed' });
   }
 });
+
+async function installScriptTag(shop, accessToken) {
+  const client = new shopify.clients.Rest({
+    session: { shop, accessToken },
+  });
+
+  try {
+    const scriptSrc = `${process.env.APP_URL}/storefront/storefront-script.js`;
+
+    // Check if script tag already exists
+    const existingScripts = await client.get({
+      path: 'script_tags',
+    });
+
+    const exists = existingScripts.body.script_tags?.some(
+      (tag) => tag.src === scriptSrc
+    );
+
+    if (exists) {
+      console.log(`✓ Script tag already installed for ${shop}`);
+      return;
+    }
+
+    // Create new script tag
+    await client.post({
+      path: 'script_tags',
+      data: {
+        script_tag: {
+          event: 'onload',
+          src: scriptSrc,
+          display_scope: 'all',
+        },
+      },
+    });
+
+    console.log(`✓ Script tag installed successfully for ${shop}`);
+  } catch (error) {
+    console.error(`Failed to install script tag for ${shop}:`, error.message);
+    // Don't throw - allow app installation to continue even if script tag fails
+  }
+}
 
 async function registerWebhooks(shop, accessToken) {
   const client = new shopify.clients.Rest({
