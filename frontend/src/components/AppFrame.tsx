@@ -23,7 +23,7 @@ export default function AppFrame({ children, currentPage, onNavigate }: AppFrame
       onClick: () => onNavigate('dashboard'),
     },
     {
-      label: 'Buttons',
+      label: 'Button Manager',
       icon: ButtonIcon,
       selected: currentPage === 'buttons' || currentPage === 'collection-detail',
       onClick: () => onNavigate('buttons'),

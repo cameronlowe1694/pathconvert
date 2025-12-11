@@ -120,7 +120,7 @@ export default function ButtonsListPage({ onNavigate }: ButtonsListPageProps) {
 
   return (
     <Page
-      title="Buttons"
+      title="Button Manager"
       primaryAction={{
         content: 'Refresh All Buttons',
         onAction: handleRefresh,
