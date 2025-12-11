@@ -264,7 +264,7 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
                   </Text>
                   <InlineStack gap="300">
                     <Button onClick={() => onNavigate?.('buttons')}>View All Buttons</Button>
-                    <Button onClick={() => onNavigate?.('ai-settings')}>AI Settings</Button>
+                    <Button onClick={() => onNavigate?.('ai-settings')}>AI & Styling Settings</Button>
                   </InlineStack>
                 </BlockStack>
               </Card>

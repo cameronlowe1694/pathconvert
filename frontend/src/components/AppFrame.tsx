@@ -29,7 +29,7 @@ export default function AppFrame({ children, currentPage, onNavigate }: AppFrame
       onClick: () => onNavigate('buttons'),
     },
     {
-      label: 'AI Settings',
+      label: 'AI & Styling Settings',
       icon: SettingsIcon,
       selected: currentPage === 'ai-settings',
       onClick: () => onNavigate('ai-settings'),
