@@ -360,7 +360,7 @@ export class SimilarityEngine {
         [this.shopDomain]
       );
 
-      const threshold = settingsResult.rows[0]?.calculated_threshold || 0.50;
+      const threshold = parseFloat(settingsResult.rows[0]?.calculated_threshold) || 0.50;
 
       console.log(`Recalculating similarities for ${collectionId} with threshold ${threshold.toFixed(3)}`);
 
