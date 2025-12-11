@@ -363,6 +363,87 @@ router.post('/simple/reactivate-buttons', async (req, res) => {
   }
 });
 
+// Cleanup endpoint - remove broken links and optionally rebuild
+router.post('/simple/cleanup', async (req, res) => {
+  const shop = req.query.shop;
+  const { removeDeletedTargets, rebuildEmbeddings } = req.body;
+
+  if (!shop) {
+    return res.status(400).json({ success: false, error: 'Missing shop parameter' });
+  }
+
+  const client = await pool.connect();
+  try {
+    let removedCount = 0;
+
+    // Remove deleted targets if requested
+    if (removeDeletedTargets) {
+      // Get access token to check which collections still exist
+      const tokenResult = await client.query(
+        'SELECT access_token FROM shop_settings WHERE shop_domain = $1',
+        [shop]
+      );
+
+      if (tokenResult.rows.length === 0) {
+        throw new Error('Shop not found in database');
+      }
+
+      const accessToken = tokenResult.rows[0].access_token;
+
+      // Fetch current collections from Shopify
+      const collectionsResponse = await axios.get(
+        `https://${shop}/admin/api/2024-01/custom_collections.json`,
+        {
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      const activeHandles = new Set(
+        collectionsResponse.data.custom_collections.map(c => c.handle)
+      );
+
+      // Get all target collections in recommendations
+      const recsResult = await client.query(
+        'SELECT DISTINCT target_collection_id FROM collection_recommendations WHERE shop_domain = $1',
+        [shop]
+      );
+
+      // Find and remove recommendations pointing to deleted collections
+      for (const row of recsResult.rows) {
+        if (!activeHandles.has(row.target_collection_id)) {
+          const deleteResult = await client.query(
+            'DELETE FROM collection_recommendations WHERE shop_domain = $1 AND target_collection_id = $2',
+            [shop, row.target_collection_id]
+          );
+          removedCount += deleteResult.rowCount;
+        }
+      }
+
+      console.log(`✓ Removed ${removedCount} broken recommendation links`);
+    }
+
+    // Rebuild embeddings if requested
+    if (rebuildEmbeddings) {
+      // Trigger full re-analysis
+      await runAnalysis(shop);
+    }
+
+    res.json({
+      success: true,
+      removedCount,
+      rebuiltEmbeddings: rebuildEmbeddings,
+    });
+  } catch (error) {
+    console.error('Cleanup error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
 // Clear all data for a shop (admin utility)
 router.post('/simple/clear', async (req, res) => {
   const shop = req.query.shop;

@@ -159,8 +159,26 @@ export async function fetchAiSettings(): Promise<AiSettings> {
 }
 
 export async function updateAiSettings(settings: AiSettings): Promise<void> {
-  // Placeholder - implement when backend supports settings
-  console.log('Update AI settings', settings);
+  const shop = await getShopParam();
+  const response = await fetch(`${API_BASE}/admin/settings?shop=${shop}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      is_active: true,
+      max_recommendations: 15,
+      button_style: {
+        alignment: settings.buttonAlignment,
+        colorMode: settings.colorMode,
+        placement: settings.placement,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to save settings');
+  }
 }
 
 export async function rebuildAiIndex(): Promise<void> {
@@ -173,10 +191,18 @@ export async function runCleanup(options: {
   removeDeletedTargets: boolean;
   rebuildEmbeddings: boolean;
 }): Promise<void> {
-  // Placeholder - implement cleanup logic
-  console.log('Run cleanup', options);
-  if (options.rebuildEmbeddings) {
-    await generateButtonsForAllCollections();
+  const shop = await getShopParam();
+  const response = await fetch(`${API_BASE}/simple/cleanup?shop=${shop}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(options),
+  });
+
+  const data = await response.json();
+  if (!data.success) {
+    throw new Error(data.error || 'Cleanup failed');
   }
 }
 

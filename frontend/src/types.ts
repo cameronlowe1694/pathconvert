@@ -29,7 +29,9 @@ export type AiSettings = {
   placement: 'aboveGrid' | 'belowDescription' | 'both';
   colorMode: 'theme' | 'custom';
   customHex?: string;
+  customColor?: string;
   buttonAlignment?: 'left' | 'center' | 'right';
+  maxButtonsPerPage?: number;
 };
 
 export type DashboardStats = {

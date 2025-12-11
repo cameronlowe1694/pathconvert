@@ -14,6 +14,8 @@ import {
   Banner,
   RangeSlider,
 } from '@shopify/polaris';
+import { updateAiSettings } from '../utils/api';
+import type { AiSettings } from '../types';
 
 export default function AISettingsPage() {
   const [autoGenerate, setAutoGenerate] = useState(true);
@@ -27,9 +29,25 @@ export default function AISettingsPage() {
 
   async function handleSave() {
     setSaving(true);
-    // Save settings via API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSaving(false);
+    try {
+      const settings: AiSettings = {
+        autoGenerateForNewCollections: autoGenerate,
+        autoRemoveDeletedTargets: autoRemove,
+        syncFrequency: syncFrequency as 'manual' | 'hourly' | 'daily' | 'weekly',
+        buttonAlignment: buttonAlignment as 'left' | 'center' | 'right',
+        colorMode: colorMode as 'theme' | 'custom',
+        customColor: colorMode === 'custom' ? customColor : undefined,
+        maxButtonsPerPage: maxButtons,
+        buttonShape: 'pill',
+        buttonSize: 'medium',
+        placement: 'aboveGrid',
+      };
+      await updateAiSettings(settings);
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
