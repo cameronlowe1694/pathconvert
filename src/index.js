@@ -167,6 +167,21 @@ try {
           END IF;
         END $$;
       `);
+
+      // Add analysis_frequency column if it doesn't exist
+      await client.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name='shop_settings' AND column_name='analysis_frequency'
+          ) THEN
+            ALTER TABLE shop_settings ADD COLUMN analysis_frequency VARCHAR(50) DEFAULT 'weekly';
+            RAISE NOTICE 'Added analysis_frequency column';
+          END IF;
+        END $$;
+      `);
+
       console.log('✓ Database migrations completed');
     } finally {
       client.release();
