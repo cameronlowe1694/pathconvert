@@ -63,17 +63,6 @@ export default function ButtonsListPage({ onNavigate }: ButtonsListPageProps) {
     // await loadData();
   }
 
-  const promotedBulkActions = [
-    {
-      content: 'Deactivate Buttons',
-      onAction: handleBulkDeactivate,
-    },
-    {
-      content: 'Reactivate Buttons',
-      onAction: handleBulkReactivate,
-    },
-  ];
-
   if (loading) {
     return (
       <SkeletonPage primaryAction>
@@ -133,6 +122,23 @@ export default function ButtonsListPage({ onNavigate }: ButtonsListPageProps) {
         onAction: handleRefresh,
         loading: refreshing,
       }}
+      actionGroups={[
+        {
+          title: 'Actions',
+          actions: [
+            {
+              content: 'Deactivate Buttons',
+              onAction: handleBulkDeactivate,
+              disabled: selectedResources.length === 0,
+            },
+            {
+              content: 'Reactivate Buttons',
+              onAction: handleBulkReactivate,
+              disabled: selectedResources.length === 0,
+            },
+          ],
+        },
+      ]}
     >
       <Layout>
         <Layout.Section>
@@ -144,7 +150,6 @@ export default function ButtonsListPage({ onNavigate }: ButtonsListPageProps) {
                 allResourcesSelected ? 'All' : selectedResources.length
               }
               onSelectionChange={handleSelectionChange}
-              promotedBulkActions={promotedBulkActions}
               headings={[
                 { title: 'Collection' },
                 { title: 'Buttons' },
