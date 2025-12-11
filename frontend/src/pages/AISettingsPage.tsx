@@ -18,7 +18,6 @@ export default function AISettingsPage() {
   const [autoGenerate, setAutoGenerate] = useState(true);
   const [autoRemove, setAutoRemove] = useState(true);
   const [syncFrequency, setSyncFrequency] = useState('weekly');
-  const [buttonShape, setButtonShape] = useState('pill');
   const [buttonAlignment, setButtonAlignment] = useState('left');
   const [colorMode, setColorMode] = useState('theme');
   const [customColor, setCustomColor] = useState('#008060');
@@ -83,16 +82,6 @@ export default function AISettingsPage() {
                 Button Appearance
               </Text>
               <FormLayout>
-                <Select
-                  label="Button shape"
-                  options={[
-                    { label: 'Pill (fully rounded)', value: 'pill' },
-                    { label: 'Rounded corners', value: 'rounded' },
-                    { label: 'Square', value: 'square' },
-                  ]}
-                  value={buttonShape}
-                  onChange={setButtonShape}
-                />
                 <Select
                   label="Button alignment"
                   options={[
