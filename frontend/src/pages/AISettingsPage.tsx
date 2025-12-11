@@ -12,6 +12,7 @@ import {
   BlockStack,
   Text,
   Banner,
+  RangeSlider,
 } from '@shopify/polaris';
 
 export default function AISettingsPage() {
@@ -21,6 +22,7 @@ export default function AISettingsPage() {
   const [buttonAlignment, setButtonAlignment] = useState('left');
   const [colorMode, setColorMode] = useState('theme');
   const [customColor, setCustomColor] = useState('#008060');
+  const [maxButtons, setMaxButtons] = useState(3);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
@@ -119,6 +121,19 @@ export default function AISettingsPage() {
                       autoComplete="off"
                     />
                   )}
+                </BlockStack>
+                <BlockStack gap="200">
+                  <Text as="p" variant="bodyMd" fontWeight="semibold">
+                    Max Buttons per Collection Page
+                  </Text>
+                  <RangeSlider
+                    label=""
+                    value={maxButtons}
+                    onChange={setMaxButtons}
+                    min={1}
+                    max={20}
+                    output
+                  />
                 </BlockStack>
               </FormLayout>
             </BlockStack>
