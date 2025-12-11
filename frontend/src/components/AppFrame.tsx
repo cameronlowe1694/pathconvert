@@ -35,7 +35,7 @@ export default function AppFrame({ children, currentPage, onNavigate }: AppFrame
       onClick: () => onNavigate('ai-settings'),
     },
     {
-      label: 'Sync',
+      label: 'Instant Sync & Cleanup',
       icon: RefreshIcon,
       selected: currentPage === 'sync',
       onClick: () => onNavigate('sync'),
