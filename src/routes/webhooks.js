@@ -126,17 +126,15 @@ router.post('/webhooks/app/uninstalled', express.raw({ type: 'application/json' 
 
     console.log(`App uninstalled webhook for ${shop}`);
 
-    // Clean up ALL shop data including recommendations and embeddings
+    // Clean up ALL shop data including recommendations and analytics
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
 
       // Delete all tables in correct order (respecting foreign keys)
-      await client.query('DELETE FROM recommendations WHERE shop_domain = $1', [shop]);
-      await client.query('DELETE FROM collection_embeddings WHERE shop_domain = $1', [shop]);
-      await client.query('DELETE FROM related_collections WHERE shop_domain = $1', [shop]);
+      await client.query('DELETE FROM collection_recommendations WHERE shop_domain = $1', [shop]);
       await client.query('DELETE FROM collections WHERE shop_domain = $1', [shop]);
-      await client.query('DELETE FROM button_clicks WHERE shop_domain = $1', [shop]);
+      await client.query('DELETE FROM collection_link_analytics WHERE shop_domain = $1', [shop]);
       await client.query('DELETE FROM job_queue WHERE shop_domain = $1', [shop]);
       await client.query('DELETE FROM shop_settings WHERE shop_domain = $1', [shop]);
 
