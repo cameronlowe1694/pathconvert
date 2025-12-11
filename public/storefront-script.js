@@ -6,12 +6,15 @@
 (function() {
   'use strict';
 
-  const CONFIG = {
+  let CONFIG = {
     APP_URL: window.PATHCONVERT_APP_URL || 'https://your-app-url.com',
     MAX_BUTTONS: 4,
     MIN_SIMILARITY: 0.7,
     BUTTON_STYLE: 'primary',
     HEADING_TEXT: 'You might also like',
+    ALIGNMENT: 'center', // Will be overridden by shop settings
+    COLOR_MODE: 'theme',
+    CUSTOM_COLOR: null,
   };
 
   // Only run on collection pages
@@ -53,8 +56,35 @@
     return match ? match[1] : null;
   }
 
+  async function fetchShopSettings() {
+    try {
+      const response = await fetch(
+        `${CONFIG.APP_URL}/api/admin/settings?shop=${shop}`
+      );
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      if (data.success && data.settings) {
+        const settings = data.settings;
+        const buttonStyle = settings.button_style || {};
+
+        // Update CONFIG with shop settings
+        CONFIG.MAX_BUTTONS = settings.max_recommendations || CONFIG.MAX_BUTTONS;
+        CONFIG.ALIGNMENT = buttonStyle.alignment || CONFIG.ALIGNMENT;
+        CONFIG.COLOR_MODE = buttonStyle.colorMode || CONFIG.COLOR_MODE;
+        CONFIG.CUSTOM_COLOR = buttonStyle.customColor;
+      }
+    } catch (error) {
+      console.warn('PathConvert: Could not load shop settings, using defaults');
+    }
+  }
+
   async function insertButtons() {
     try {
+      // Fetch shop settings first
+      await fetchShopSettings();
+
       // Fetch related collections
       const response = await fetch(
         `${CONFIG.APP_URL}/api/collections/${collectionHandle}/related?shop=${shop}`
@@ -151,11 +181,28 @@
     `;
   }
 
+  function getJustifyContent() {
+    switch (CONFIG.ALIGNMENT) {
+      case 'left': return 'flex-start';
+      case 'right': return 'flex-end';
+      case 'center':
+      default: return 'center';
+    }
+  }
+
+  function getButtonColor() {
+    if (CONFIG.COLOR_MODE === 'custom' && CONFIG.CUSTOM_COLOR) {
+      return CONFIG.CUSTOM_COLOR;
+    }
+    return '#000'; // Default black
+  }
+
   function injectStyles() {
     if (document.getElementById('pathconvert-styles')) {
       return; // Already injected
     }
 
+    const buttonColor = getButtonColor();
     const style = document.createElement('style');
     style.id = 'pathconvert-styles';
     style.textContent = `
@@ -182,7 +229,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
-        justify-content: center;
+        justify-content: ${getJustifyContent()};
         align-items: center;
       }
 
@@ -203,14 +250,14 @@
       }
 
       .pathconvert-button--primary {
-        background-color: #000;
+        background-color: ${buttonColor};
         color: #fff;
-        border-color: #000;
+        border-color: ${buttonColor};
       }
 
       .pathconvert-button--primary:hover {
-        background-color: #333;
-        border-color: #333;
+        background-color: ${buttonColor}dd;
+        border-color: ${buttonColor}dd;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
