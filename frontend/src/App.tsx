@@ -36,7 +36,7 @@ export default function App() {
   }, []);
 
   const config = {
-    apiKey: process.env.SHOPIFY_API_KEY || 'not-needed-for-now',
+    apiKey: import.meta.env.VITE_SHOPIFY_API_KEY || 'fae7538a6fc12ec615cdfc413f17638f',
     host: host,
     forceRedirect: false,
   };
