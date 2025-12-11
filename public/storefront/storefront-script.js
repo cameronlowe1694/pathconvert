@@ -11,7 +11,6 @@
     MAX_BUTTONS: 4,
     MIN_SIMILARITY: 0.7,
     BUTTON_STYLE: 'primary',
-    HEADING_TEXT: 'You might also like',
     ALIGNMENT: 'center', // Will be overridden by shop settings
     COLOR_MODE: 'theme',
     CUSTOM_COLOR: null,
@@ -150,7 +149,6 @@
 
     container.innerHTML = `
       <div class="pathconvert-container">
-        <h2 class="pathconvert-heading">${CONFIG.HEADING_TEXT}</h2>
         <div class="pathconvert-buttons">
           ${collections.map(col => createButton(col)).join('')}
         </div>
