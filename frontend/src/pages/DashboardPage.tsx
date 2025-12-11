@@ -239,24 +239,14 @@ export default function DashboardPage() {
                   <Text as="h2" variant="headingMd">
                     Performance Snapshot
                   </Text>
-                  <InlineStack gap="800">
-                    <BlockStack gap="200">
-                      <Text as="p" variant="headingLg">
-                        {stats?.buttonClicks || '—'}
-                      </Text>
-                      <Text as="p" variant="bodySm" tone="subdued">
-                        Button clicks
-                      </Text>
-                    </BlockStack>
-                    <BlockStack gap="200">
-                      <Text as="p" variant="headingLg">
-                        {stats?.influencedConversions || '—'}
-                      </Text>
-                      <Text as="p" variant="bodySm" tone="subdued">
-                        Influenced conversions
-                      </Text>
-                    </BlockStack>
-                  </InlineStack>
+                  <BlockStack gap="200">
+                    <Text as="p" variant="headingLg">
+                      {stats?.buttonClicks || '—'}
+                    </Text>
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      Button clicks
+                    </Text>
+                  </BlockStack>
                 </BlockStack>
               </Card>
             </Layout.Section>
