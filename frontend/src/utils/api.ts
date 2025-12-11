@@ -145,16 +145,39 @@ export async function regenerateCollectionButtons(collectionId: string): Promise
 
 // AI Settings
 export async function fetchAiSettings(): Promise<AiSettings> {
-  // Return defaults for now - implement when backend supports settings
+  const shop = await getShopParam();
+  const response = await fetch(`${API_BASE}/admin/settings?shop=${shop}`);
+
+  if (!response.ok) {
+    // Return defaults if settings don't exist
+    return {
+      autoGenerateForNewCollections: true,
+      autoRemoveDeletedTargets: true,
+      syncFrequency: 'weekly',
+      buttonShape: 'pill',
+      buttonSize: 'medium',
+      placement: 'aboveGrid',
+      colorMode: 'theme',
+      buttonAlignment: 'left',
+      maxButtonsPerPage: 15,
+    };
+  }
+
+  const data = await response.json();
+  const settings = data.settings;
+  const buttonStyle = settings.button_style || {};
+
   return {
-    autoGenerateForNewCollections: false,
-    autoRemoveDeletedTargets: true,
-    syncFrequency: 'manual',
-    buttonShape: 'pill',
-    buttonSize: 'medium',
-    placement: 'aboveGrid',
-    colorMode: 'theme',
-    buttonAlignment: 'left',
+    autoGenerateForNewCollections: buttonStyle.autoGenerate ?? true,
+    autoRemoveDeletedTargets: buttonStyle.autoRemove ?? true,
+    syncFrequency: (settings.analysis_frequency || 'weekly') as 'manual' | 'hourly' | 'daily' | 'weekly',
+    buttonShape: (buttonStyle.buttonShape || 'pill') as 'pill' | 'rounded' | 'square',
+    buttonSize: (buttonStyle.buttonSize || 'medium') as 'small' | 'medium',
+    placement: (buttonStyle.placement || 'aboveGrid') as 'aboveGrid' | 'belowDescription' | 'both',
+    colorMode: (buttonStyle.colorMode || 'theme') as 'theme' | 'custom',
+    customColor: buttonStyle.customColor,
+    buttonAlignment: (buttonStyle.alignment || 'left') as 'left' | 'center' | 'right',
+    maxButtonsPerPage: settings.max_recommendations || 15,
   };
 }
 
@@ -167,11 +190,17 @@ export async function updateAiSettings(settings: AiSettings): Promise<void> {
     },
     body: JSON.stringify({
       is_active: true,
-      max_recommendations: 15,
+      max_recommendations: settings.maxButtonsPerPage || 15,
+      analysis_frequency: settings.syncFrequency,
       button_style: {
         alignment: settings.buttonAlignment,
         colorMode: settings.colorMode,
+        customColor: settings.customColor,
         placement: settings.placement,
+        buttonShape: settings.buttonShape,
+        buttonSize: settings.buttonSize,
+        autoGenerate: settings.autoGenerateForNewCollections,
+        autoRemove: settings.autoRemoveDeletedTargets,
       },
     }),
   });

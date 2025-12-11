@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Page,
   Layout,
@@ -14,7 +14,7 @@ import {
   Banner,
   RangeSlider,
 } from '@shopify/polaris';
-import { updateAiSettings } from '../utils/api';
+import { updateAiSettings, fetchAiSettings } from '../utils/api';
 import type { AiSettings } from '../types';
 
 export default function AISettingsPage() {
@@ -26,6 +26,28 @@ export default function AISettingsPage() {
   const [customColor, setCustomColor] = useState('#008060');
   const [maxButtons, setMaxButtons] = useState(15);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Load settings on mount
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const settings = await fetchAiSettings();
+        setAutoGenerate(settings.autoGenerateForNewCollections);
+        setAutoRemove(settings.autoRemoveDeletedTargets);
+        setSyncFrequency(settings.syncFrequency);
+        setButtonAlignment(settings.buttonAlignment || 'left');
+        setColorMode(settings.colorMode);
+        setCustomColor(settings.customColor || '#008060');
+        setMaxButtons(settings.maxButtonsPerPage || 15);
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSettings();
+  }, []);
 
   async function handleSave() {
     setSaving(true);

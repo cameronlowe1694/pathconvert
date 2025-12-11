@@ -195,7 +195,7 @@ router.get('/admin/settings', async (req, res) => {
 router.put('/admin/settings', express.json(), async (req, res) => {
   try {
     const shopDomain = req.query.shop;
-    const { is_active, max_recommendations, min_similarity_threshold, button_style } = req.body;
+    const { is_active, max_recommendations, min_similarity_threshold, button_style, analysis_frequency } = req.body;
 
     const client = await pool.connect();
     try {
@@ -205,9 +205,10 @@ router.put('/admin/settings', express.json(), async (req, res) => {
              max_recommendations = COALESCE($3, max_recommendations),
              min_similarity_threshold = COALESCE($4, min_similarity_threshold),
              button_style = COALESCE($5, button_style),
+             analysis_frequency = COALESCE($6, analysis_frequency),
              updated_at = NOW()
          WHERE shop_domain = $1`,
-        [shopDomain, is_active, max_recommendations, min_similarity_threshold, button_style ? JSON.stringify(button_style) : null]
+        [shopDomain, is_active, max_recommendations, min_similarity_threshold, button_style ? JSON.stringify(button_style) : null, analysis_frequency]
       );
 
       res.json({ success: true });
