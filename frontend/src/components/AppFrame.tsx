@@ -62,7 +62,9 @@ export default function AppFrame({ children, currentPage, onNavigate }: AppFrame
         </Navigation>
       }
     >
-      {children}
+      <div style={{ paddingBottom: '2rem' }}>
+        {children}
+      </div>
     </Frame>
   );
 }
