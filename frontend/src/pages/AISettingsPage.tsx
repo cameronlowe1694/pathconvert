@@ -22,7 +22,7 @@ export default function AISettingsPage() {
   const [buttonAlignment, setButtonAlignment] = useState('left');
   const [colorMode, setColorMode] = useState('theme');
   const [customColor, setCustomColor] = useState('#008060');
-  const [maxButtons, setMaxButtons] = useState(3);
+  const [maxButtons, setMaxButtons] = useState(15);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {

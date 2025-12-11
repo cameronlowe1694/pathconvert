@@ -247,7 +247,7 @@ export class SimilarityEngine {
   }
 
   // Calculate similarities for all collections and store them
-  async calculateAllSimilarities(maxRecommendations = 3, minSimilarity = null) {
+  async calculateAllSimilarities(maxRecommendations = 15, minSimilarity = null) {
     const client = await pool.connect();
 
     try {
@@ -350,7 +350,7 @@ export class SimilarityEngine {
   }
 
   // Calculate similarities for a specific collection
-  async calculateSimilaritiesForCollection(collectionId, maxRecommendations = 3) {
+  async calculateSimilaritiesForCollection(collectionId, maxRecommendations = 15) {
     const client = await pool.connect();
 
     try {

@@ -162,7 +162,7 @@ async function runAnalysis(shop) {
       // Step 4: Calculate similarities using vector embeddings with adaptive threshold
       const similarityEngine = new SimilarityEngine(shop);
       console.log('Starting similarity calculation with adaptive threshold...');
-      const simResult = await similarityEngine.calculateAllSimilarities(3, null); // null = use adaptive threshold
+      const simResult = await similarityEngine.calculateAllSimilarities(15, null); // null = use adaptive threshold
       console.log('Similarity calculation result:', simResult);
 
       analysisProgress[shop].progress = 85;
@@ -345,7 +345,7 @@ router.post('/simple/reactivate-buttons', async (req, res) => {
 
     let totalInserted = 0;
     for (const collectionId of collectionIds) {
-      const result = await similarityEngine.calculateSimilaritiesForCollection(collectionId, 3);
+      const result = await similarityEngine.calculateSimilaritiesForCollection(collectionId, 15);
       totalInserted += result.insertedCount || 0;
     }
 
