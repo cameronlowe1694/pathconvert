@@ -14,7 +14,7 @@ export class ThemeService {
   // Install script tag for stores
   async installScriptTag() {
     try {
-      const scriptSrc = `${process.env.APP_URL}/storefront-script.js`;
+      const scriptSrc = `${process.env.APP_URL}/storefront/storefront-script.js`;
 
       // Check if script already exists
       const existingScripts = await this.client.get({

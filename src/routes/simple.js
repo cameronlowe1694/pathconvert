@@ -216,7 +216,7 @@ async function installScriptTag(shop) {
       {
         script_tag: {
           event: 'onload',
-          src: `${process.env.APP_URL}/storefront/recommendations.js`
+          src: `${process.env.APP_URL}/storefront/storefront-script.js`
         }
       },
       {
