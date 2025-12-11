@@ -25,6 +25,18 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
   const settingsResponse = await fetch(`${API_BASE}/simple/settings?shop=${shop}`);
   const settings = await settingsResponse.json();
 
+  // Fetch button clicks
+  let buttonClicks = 0;
+  try {
+    const clicksResponse = await fetch(`${API_BASE}/analytics/total-clicks?shop=${shop}`);
+    const clicksData = await clicksResponse.json();
+    if (clicksData.success) {
+      buttonClicks = clicksData.totalClicks;
+    }
+  } catch (error) {
+    console.error('Failed to fetch click count:', error);
+  }
+
   return {
     collectionsWithButtons: data.count.collections,
     totalCollections: data.count.collections,
@@ -33,7 +45,7 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
     nextAutoSync: undefined,
     isActive: data.count.recommendations > 0,
     shoppersGuided: 0,
-    buttonClicks: 0,
+    buttonClicks: buttonClicks,
     influencedConversions: 0,
     mostClickedButton: undefined,
   };

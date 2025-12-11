@@ -80,13 +80,22 @@
 
         // Track click
         card.addEventListener('click', () => {
+          // Generate or retrieve session ID
+          let sessionId = sessionStorage.getItem('pathconvert_session');
+          if (!sessionId) {
+            sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            sessionStorage.setItem('pathconvert_session', sessionId);
+          }
+
           fetch('https://pathconvert.onrender.com/api/analytics/click', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               shop: shopDomain,
               source: currentHandle,
-              target: collection.handle
+              target: collection.handle,
+              sessionId: sessionId,
+              userAgent: navigator.userAgent
             })
           }).catch(err => console.error('PathConvert: Analytics error', err));
         });

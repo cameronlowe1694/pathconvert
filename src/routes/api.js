@@ -32,7 +32,7 @@ router.get('/collections/:handle/related', async (req, res) => {
 // Track button click (analytics)
 router.post('/analytics/click', express.json(), async (req, res) => {
   try {
-    const { shop, source, target } = req.body;
+    const { shop, source, target, sessionId, userAgent } = req.body;
 
     if (!shop || !source || !target) {
       return res.status(400).json({ error: 'Missing required parameters' });
@@ -41,9 +41,9 @@ router.post('/analytics/click', express.json(), async (req, res) => {
     const client = await pool.connect();
     try {
       await client.query(
-        `INSERT INTO button_clicks (shop_domain, source_collection_handle, target_collection_handle)
-         VALUES ($1, $2, $3)`,
-        [shop, source, target]
+        `INSERT INTO collection_link_analytics (shop_domain, source_collection_id, target_collection_id, session_id, user_agent)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [shop, source, target, sessionId || null, userAgent || null]
       );
     } finally {
       client.release();
@@ -52,7 +52,37 @@ router.post('/analytics/click', express.json(), async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error tracking click:', error);
-    res.status(500).json({ error: 'Failed to track click' });
+    // Don't fail - just log the error so buttons still work
+    res.json({ success: true });
+  }
+});
+
+// Get total button clicks for dashboard
+router.get('/analytics/total-clicks', async (req, res) => {
+  try {
+    const shop = req.query.shop;
+
+    if (!shop) {
+      return res.status(400).json({ error: 'Missing shop parameter' });
+    }
+
+    const client = await pool.connect();
+    try {
+      const result = await client.query(
+        'SELECT COUNT(*) as total FROM collection_link_analytics WHERE shop_domain = $1',
+        [shop]
+      );
+
+      res.json({
+        success: true,
+        totalClicks: parseInt(result.rows[0].total)
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Error fetching total clicks:', error);
+    res.status(500).json({ error: 'Failed to fetch click count' });
   }
 });
 
