@@ -124,20 +124,6 @@ export default function AISettingsPage() {
             </BlockStack>
           </Card>
         </Layout.Section>
-
-        <Layout.Section>
-          <Card>
-            <BlockStack gap="400">
-              <Text as="h2" variant="headingMd">
-                Advanced
-              </Text>
-              <Banner>
-                Rebuild the AI index if you've made significant changes to collection content
-              </Banner>
-              <Button>Rebuild AI Index</Button>
-            </BlockStack>
-          </Card>
-        </Layout.Section>
       </Layout>
     </Page>
   );
