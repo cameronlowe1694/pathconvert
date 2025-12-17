@@ -17,7 +17,7 @@ COPY prisma ./prisma/
 
 # Install server dependencies (including Prisma CLI)
 WORKDIR /app/server
-RUN npm ci && npm cache clean --force
+RUN npm install && npm cache clean --force
 
 # Generate Prisma client
 WORKDIR /app
@@ -26,7 +26,7 @@ RUN cd server && npx prisma generate --schema=../prisma/schema.prisma
 # Install and build client with reasonable memory limit
 WORKDIR /app/client
 ENV NODE_OPTIONS="--max-old-space-size=2048"
-RUN npm ci && npm cache clean --force
+RUN npm install && npm cache clean --force
 
 # Copy source files
 WORKDIR /app
