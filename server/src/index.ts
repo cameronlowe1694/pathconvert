@@ -57,6 +57,17 @@ app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/apps/pathconvert', proxyRoutes);
 
+// Handle root URL with shop parameter - redirect to OAuth
+app.get('/', (req, res) => {
+  const { shop } = req.query;
+  if (shop && typeof shop === 'string') {
+    // Redirect to OAuth flow
+    return res.redirect(`/auth?shop=${shop}`);
+  }
+  // Otherwise serve the React app
+  res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+});
+
 // Serve static files from client build
 const clientBuildPath = path.join(__dirname, '../../client/dist');
 app.use(express.static(clientBuildPath));
