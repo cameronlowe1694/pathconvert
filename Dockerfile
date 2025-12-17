@@ -7,26 +7,16 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy root package files
-COPY package.json package-lock.json* ./
-
-# Install root dependencies (only concurrently for dev)
-RUN npm install --production=false
-
-# Copy server and client
-COPY server ./server
-COPY client ./client
-COPY prisma ./prisma
+# Copy all files
+COPY . .
 
 # Install server dependencies
 WORKDIR /app/server
-COPY server/package.json server/package-lock.json* ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Install client dependencies and build
 WORKDIR /app/client
-COPY client/package.json client/package-lock.json* ./
-RUN npm ci && npm cache clean --force
+RUN npm install && npm cache clean --force
 RUN npm run build
 
 # Back to root
