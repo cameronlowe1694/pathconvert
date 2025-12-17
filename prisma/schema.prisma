@@ -1,18 +1,16 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// PathConvert Prisma Schema
+// Database: PostgreSQL (Render)
 
 generator client {
   provider = "prisma-client-js"
 }
 
-// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
-// enough when changing adapters.
-// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
   provider = "sqlite"
-  url      = "file:dev.sqlite"
+  url      = "file:./dev.db"
 }
 
+// ==================== SESSION STORAGE ====================
 model Session {
   id                  String    @id
   shop                String
@@ -31,4 +29,133 @@ model Session {
   emailVerified       Boolean?  @default(false)
   refreshToken        String?
   refreshTokenExpires DateTime?
+}
+
+// ==================== CORE MODELS ====================
+
+model Shop {
+  id              String        @id @default(uuid())
+  shopDomain      String        @unique
+  accessToken     String
+  lastAnalysedAt  DateTime?
+  cacheVersion    Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  settings        Settings?
+  collections     Collection[]
+  jobs            Job[]
+  billing         Billing?
+
+  @@index([shopDomain])
+}
+
+model Settings {
+  id         String  @id @default(uuid())
+  shopId     String  @unique
+  shop       Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  maxButtons Int     @default(15) // 1-20
+  alignment  String  @default("left") // left, center, right
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Collection {
+  id                  String      @id @default(uuid())
+  shopId              String
+  shop                Shop        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  shopifyCollectionId String
+  handle              String
+  title               String
+  descriptionText     String?
+  genderCategory      String      @default("unknown") // men, women, unisex, unknown
+  isExcludedSale      Boolean     @default(false)
+  isEnabled           Boolean     @default(true)
+  updatedAtShopify    DateTime?
+
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  embedding           Embedding?
+  edgesFrom           Edge[]      @relation("SourceCollection")
+  edgesTo             Edge[]      @relation("TargetCollection")
+
+  @@unique([shopId, shopifyCollectionId])
+  @@unique([shopId, handle])
+  @@index([shopId, isEnabled])
+  @@index([handle])
+}
+
+model Embedding {
+  id               String     @id @default(uuid())
+  collectionId     String     @unique
+  collection       Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  embeddingVector  String // JSON array
+  embeddingModel   String
+
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([collectionId])
+}
+
+model Edge {
+  id                   String     @id @default(uuid())
+  sourceCollectionId   String
+  sourceCollection     Collection @relation("SourceCollection", fields: [sourceCollectionId], references: [id], onDelete: Cascade)
+
+  targetCollectionId   String
+  targetCollection     Collection @relation("TargetCollection", fields: [targetCollectionId], references: [id], onDelete: Cascade)
+
+  score                Float
+  rank                 Int
+
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@unique([sourceCollectionId, targetCollectionId])
+  @@index([sourceCollectionId, rank])
+}
+
+// ==================== JOB QUEUE (Postgres-backed) ====================
+
+model Job {
+  id              String    @id @default(uuid())
+  shopId          String
+  shop            Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  type            String    // ANALYSE_DEPLOY, FETCH_COLLECTIONS, etc.
+  status          String    @default("pending") // pending, running, complete, failed
+  progressPercent Int       @default(0)
+  step            String?
+  errorMessage    String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([shopId, status])
+  @@index([status])
+}
+
+// ==================== BILLING ====================
+
+model Billing {
+  id                    String    @id @default(uuid())
+  shopId                String    @unique
+  shop                  Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  plan                  String    // starter
+  interval              String    // monthly, annual
+  status                String    // active, cancelled, frozen
+  shopifySubscriptionId String?
+  currentPeriodEnd      DateTime?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([shopId, status])
 }
