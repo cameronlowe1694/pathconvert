@@ -21,18 +21,20 @@ router.get('/', async (req, res) => {
 
   try {
     // Generate OAuth authorization URL
-    const authRoute = await shopify.auth.begin({
+    // Note: shopify.auth.begin() will send the redirect response when rawResponse is provided
+    await shopify.auth.begin({
       shop,
       callbackPath: OAUTH_CALLBACK_PATH,
       isOnline: false, // Offline access for background jobs
       rawRequest: req,
       rawResponse: res,
     });
-
-    res.redirect(authRoute);
+    // No need to call res.redirect() - it's already handled above
   } catch (error) {
     console.error('OAuth begin error:', error);
-    res.status(500).send('Failed to start OAuth flow');
+    if (!res.headersSent) {
+      res.status(500).send('Failed to start OAuth flow');
+    }
   }
 });
 
