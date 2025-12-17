@@ -139,3 +139,15 @@ model Billing {
 
   @@index([shopId, status])
 }
+
+// ==================== OAUTH STATE STORAGE ====================
+
+model OAuthState {
+  id        String   @id @default(uuid())
+  shop      String
+  state     String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([shop])
+  @@index([createdAt])
+}
