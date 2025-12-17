@@ -84,7 +84,7 @@ router.get('/buttons', async (req, res) => {
     const recommendations = await getRecommendations(shopRecord.id, handle);
 
     // Format buttons
-    const buttons = recommendations.map((rec) => ({
+    const buttons = recommendations.map((rec: any) => ({
       title: rec.title,
       url: rec.url,
       score: rec.score,

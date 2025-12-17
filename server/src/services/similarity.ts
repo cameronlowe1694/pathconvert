@@ -169,7 +169,7 @@ export async function getRecommendations(shopId: string, handle: string) {
     },
   });
 
-  return edges.map((edge) => ({
+  return edges.map((edge: any) => ({
     title: edge.targetCollection.title,
     url: `/collections/${edge.targetCollection.handle}`,
     score: edge.score,

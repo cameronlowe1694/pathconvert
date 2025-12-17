@@ -25,6 +25,8 @@ router.get('/', async (req, res) => {
       shop,
       callbackPath: OAUTH_CALLBACK_PATH,
       isOnline: false, // Offline access for background jobs
+      rawRequest: req,
+      rawResponse: res,
     });
 
     res.redirect(authRoute);

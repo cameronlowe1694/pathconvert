@@ -82,7 +82,7 @@ router.post('/analyse-deploy', async (req, res) => {
 router.get('/job-status/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { shopId } = req as AuthenticatedRequest;
+    const authReq = req as unknown as AuthenticatedRequest;
 
     const job = await getJobStatus(id);
 
@@ -96,7 +96,7 @@ router.get('/job-status/:id', async (req, res) => {
       select: { shopId: true },
     });
 
-    if (jobWithShop?.shopId !== shopId) {
+    if (jobWithShop?.shopId !== authReq.shopId) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
@@ -151,11 +151,11 @@ router.get('/collections', async (req, res) => {
 router.post('/collections/:id/toggle', async (req, res) => {
   try {
     const { id } = req.params;
-    const { shopId } = req as AuthenticatedRequest;
+    const authReq = req as unknown as AuthenticatedRequest;
 
     // Verify collection belongs to this shop
     const collection = await prisma.collection.findFirst({
-      where: { id, shopId },
+      where: { id, shopId: authReq.shopId },
     });
 
     if (!collection) {
@@ -260,7 +260,7 @@ router.post('/cleanup', async (req, res) => {
       if (edges.length > 0) {
         await prisma.edge.deleteMany({
           where: {
-            id: { in: edges.map((e) => e.id) },
+            id: { in: edges.map((e: any) => e.id) },
           },
         });
         deletedCount = edges.length;
