@@ -14,10 +14,11 @@ COPY . .
 WORKDIR /app/server
 RUN npm install --omit=dev && npm cache clean --force
 
-# Install client dependencies and build
+# Install client dependencies (including dev deps for build) and build
 WORKDIR /app/client
 RUN npm install && npm cache clean --force
 RUN npm run build
+RUN npm prune --production && npm cache clean --force
 
 # Back to root
 WORKDIR /app
