@@ -5,9 +5,7 @@ EXPOSE 3000
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-
-# Copy all files
+# Copy all files first (don't set NODE_ENV=production yet, or npm install will skip devDependencies)
 COPY . .
 
 # Install server dependencies
@@ -22,5 +20,8 @@ RUN npm prune --production && npm cache clean --force
 
 # Back to root
 WORKDIR /app
+
+# Now set NODE_ENV for runtime
+ENV NODE_ENV=production
 
 CMD ["npm", "run", "docker-start"]
