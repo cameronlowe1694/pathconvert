@@ -1,0 +1,11 @@
+api_version = "2024-10"
+
+[[extensions]]
+type = "theme"
+name = "PathConvert Recommendations"
+handle = "pathconvert-recommendations"
+
+[extensions.settings]
+[[extensions.settings.blocks]]
+type = "collection_recommendations"
+name = "Collection Recommendations"

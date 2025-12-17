@@ -1,0 +1,135 @@
+{% comment %}
+  PathConvert Collection Recommendations App Block
+  Renders AI-powered collection recommendation buttons
+{% endcomment %}
+
+<div class="pathconvert-recommendations" data-collection-handle="{{ collection.handle }}">
+  <div class="pathconvert-buttons-container" data-alignment="{{ block.settings.alignment }}">
+    <div class="pathconvert-loading">Loading recommendations...</div>
+  </div>
+</div>
+
+<style>
+  .pathconvert-recommendations {
+    margin: 2rem 0;
+  }
+
+  .pathconvert-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .pathconvert-buttons-container[data-alignment="left"] {
+    justify-content: flex-start;
+  }
+
+  .pathconvert-buttons-container[data-alignment="center"] {
+    justify-content: center;
+  }
+
+  .pathconvert-buttons-container[data-alignment="right"] {
+    justify-content: flex-end;
+  }
+
+  .pathconvert-button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: #000;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+
+  .pathconvert-button:hover {
+    background-color: #333;
+  }
+
+  .pathconvert-loading {
+    color: #666;
+    font-size: 0.875rem;
+  }
+
+  .pathconvert-error {
+    color: #999;
+    font-size: 0.875rem;
+  }
+</style>
+
+<script>
+  (function() {
+    const container = document.querySelector('.pathconvert-recommendations');
+    if (!container) return;
+
+    const collectionHandle = container.dataset.collectionHandle;
+    if (!collectionHandle) return;
+
+    const buttonsContainer = container.querySelector('.pathconvert-buttons-container');
+    const loadingEl = container.querySelector('.pathconvert-loading');
+
+    // Fetch recommendations from App Proxy
+    const shopDomain = Shopify.shop || window.Shopify.shop;
+    const apiUrl = `/apps/pathconvert/buttons?shop=${encodeURIComponent(shopDomain)}&collectionHandle=${encodeURIComponent(collectionHandle)}`;
+
+    fetch(apiUrl)
+      .then(response => response.json())
+      .then(data => {
+        // Remove loading message
+        if (loadingEl) loadingEl.remove();
+
+        // If no buttons, hide container
+        if (!data.buttons || data.buttons.length === 0) {
+          container.style.display = 'none';
+          return;
+        }
+
+        // Render buttons
+        data.buttons.forEach(button => {
+          const link = document.createElement('a');
+          link.href = button.url;
+          link.className = 'pathconvert-button';
+          link.textContent = button.title;
+          buttonsContainer.appendChild(link);
+        });
+      })
+      .catch(error => {
+        console.error('PathConvert error:', error);
+        if (loadingEl) {
+          loadingEl.className = 'pathconvert-error';
+          loadingEl.textContent = 'Failed to load recommendations';
+        }
+      });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Collection Recommendations",
+  "target": "section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Button alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    }
+  ]
+}
+{% endschema %}
