@@ -129,10 +129,12 @@ router.get('/callback', async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
-    console.log('[Auth Callback] Redirecting to app:', { shop, host });
+    console.log('[Auth Callback] OAuth complete, redirecting to Shopify admin');
 
-    // Redirect to app
-    res.redirect(`/?shop=${shop}&host=${host || ''}`);
+    // After OAuth, redirect back to Shopify admin where the app is embedded
+    // Shopify will then load our app in an iframe at the App URL
+    const shopName = shop.replace('.myshopify.com', '');
+    res.redirect(`https://admin.shopify.com/store/${shopName}/apps/ai-collection-button-links`);
   } catch (error) {
     console.error('OAuth callback error:', error);
     if (!res.headersSent) {

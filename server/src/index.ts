@@ -57,14 +57,10 @@ app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/apps/pathconvert', proxyRoutes);
 
-// Handle root URL with shop parameter - redirect to OAuth
+// Handle root URL - serve React app
 app.get('/', (req, res) => {
-  const { shop } = req.query;
-  if (shop && typeof shop === 'string') {
-    // Redirect to OAuth flow
-    return res.redirect(`/auth?shop=${shop}`);
-  }
-  // Otherwise serve the React app
+  // Always serve the React app at root
+  // The React app will handle authentication via App Bridge
   res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
 });
 
