@@ -1,10 +1,8 @@
 import { Router } from 'express';
-import { Shopify } from '@shopify/shopify-api';
-import { shopify, sanitizeShop, OAUTH_CALLBACK_PATH, OAUTH_SCOPES } from '../utils/shopify.js';
+import { sanitizeShop, OAUTH_CALLBACK_PATH, OAUTH_SCOPES } from '../utils/shopify.js';
 import { createSessionToken } from '../utils/jwt.js';
 import { oauthStorage } from '../utils/sessionStorage.js';
 import prisma from '../db.js';
-import crypto from 'crypto';
 
 const router = Router();
 
@@ -79,7 +77,7 @@ router.get('/callback', async (req, res) => {
       throw new Error(`Failed to exchange OAuth code: ${tokenResponse.statusText}`);
     }
 
-    const tokenData = await tokenResponse.json();
+    const tokenData = (await tokenResponse.json()) as { access_token: string; scope: string };
     const { access_token: accessToken, scope } = tokenData;
 
     console.log('[OAuth] Successfully exchanged code for token:', { shop });

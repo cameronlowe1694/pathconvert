@@ -1,4 +1,3 @@
-import { Session, SessionStorage } from '@shopify/shopify-api';
 import prisma from '../db.js';
 import crypto from 'crypto';
 
