@@ -19,7 +19,7 @@
     "graphql-codegen": "graphql-codegen",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "prisma": "prisma",
-    "setup": "prisma generate && prisma migrate deploy",
+    "setup": "prisma generate && prisma db push --accept-data-loss",
     "shopify": "shopify",
     "start": "remix-serve ./build/server/index.js",
     "vite": "vite"
