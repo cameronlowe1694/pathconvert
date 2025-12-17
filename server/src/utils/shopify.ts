@@ -1,7 +1,7 @@
 import '@shopify/shopify-api/adapters/node';
 import { shopifyApi, ApiVersion, Session } from '@shopify/shopify-api';
 
-// Initialize Shopify API with modern December 2025 configuration
+// Initialize Shopify API (OAuth handled manually to avoid cookie issues)
 export const shopify = shopifyApi({
   apiKey: process.env.SHOPIFY_API_KEY!,
   apiSecretKey: process.env.SHOPIFY_API_SECRET!,
@@ -10,10 +10,6 @@ export const shopify = shopifyApi({
   apiVersion: ApiVersion.October24,
   isEmbeddedApp: true,
   useOnlineTokens: false,
-  // Configure cookies for embedded apps
-  sessionCookieName: 'shopify_oauth_state',
-  sessionCookieSameSite: 'lax', // Changed from 'none' to 'lax' for OAuth flow
-  sessionCookieSecure: process.env.NODE_ENV === 'production',
 });
 
 // OAuth configuration
