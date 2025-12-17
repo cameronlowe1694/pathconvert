@@ -1,29 +1,33 @@
 node_modules
 .DS_Store
 
-/.cache
+# Build outputs
 /build
-/app/build
-/public/build/
-/public/_dev
-/app/public/build
+/client/dist
+/server/dist
+
+# Database
 /prisma/dev.sqlite
 /prisma/dev.sqlite-journal
 /prisma/dev.db
 /prisma/dev.db-journal
 database.sqlite
 
+# Environment
 .env
 .env.*
+!.env.example
 
+# Lock files
 yarn.lock
 pnpm-lock.yaml
 
+# Extensions
 /extensions/*/dist
 
-# Ignore shopify files created during app dev
+# Shopify CLI
 .shopify/*
 .shopify.lock
 
-# Archive folder with old Python code
+# Archive
 _archive_python/
