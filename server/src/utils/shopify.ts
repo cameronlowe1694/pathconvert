@@ -9,6 +9,11 @@ export const shopify = shopifyApi({
   hostName: process.env.APP_URL!.replace(/https?:\/\//, ''),
   apiVersion: ApiVersion.October24,
   isEmbeddedApp: true,
+  useOnlineTokens: false,
+  // Configure cookies for embedded apps
+  sessionCookieName: 'shopify_oauth_state',
+  sessionCookieSameSite: 'lax', // Changed from 'none' to 'lax' for OAuth flow
+  sessionCookieSecure: process.env.NODE_ENV === 'production',
 });
 
 // OAuth configuration
