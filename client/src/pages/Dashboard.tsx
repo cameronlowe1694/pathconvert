@@ -284,6 +284,24 @@ export default function Dashboard({ shop }: DashboardProps) {
             </BlockStack>
           </Card>
         </Layout.Section>
+
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text as="h2" variant="headingMd">
+                We Love Your Feedback
+              </Text>
+              <Text as="p">
+                Help us make PathConvert the ultimate one-click solution for all clients! Share your thoughts, suggestions, or feature requests with us.
+              </Text>
+              <InlineStack>
+                <Link url="mailto:feedback@pathconvert.com" external>
+                  feedback@pathconvert.com
+                </Link>
+              </InlineStack>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
       </Layout>
     </Page>
   );
