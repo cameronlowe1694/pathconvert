@@ -10,7 +10,10 @@ import {
   Banner,
   ProgressBar,
   Link,
+  Tooltip,
+  Icon,
 } from '@shopify/polaris';
+import { QuestionMarkMinor } from '@shopify/polaris-icons';
 
 interface DashboardProps {
   shop: string;
@@ -255,6 +258,19 @@ export default function Dashboard({ shop }: DashboardProps) {
                   </Text>
                   <Text as="p" variant="bodyMd">
                     {entitlement.canRunJobs ? 'Active' : 'Inactive'}
+                  </Text>
+                </div>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <InlineStack gap="100" blockAlign="center">
+                    <Text as="p" tone="subdued">
+                      Cache Version
+                    </Text>
+                    <Tooltip content="Increments each time you run Analyse & Deploy. Used to ensure fresh recommendations are served.">
+                      <Icon source={QuestionMarkMinor} tone="base" />
+                    </Tooltip>
+                  </InlineStack>
+                  <Text as="p" variant="bodyMd">
+                    {shopData.shop.cacheVersion}
                   </Text>
                 </div>
                 <div style={{ flex: 1, minWidth: '200px' }}>
