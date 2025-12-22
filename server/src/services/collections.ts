@@ -100,39 +100,36 @@ export async function fetchCollectionsFromShopify(shop: string, accessToken: str
   let hasNextPage = true;
 
   while (hasNextPage) {
-    const response = await client.query({
-      data: {
-        query: `
-          query getCollections($cursor: String) {
-            collections(first: 250, after: $cursor) {
-              edges {
-                node {
-                  id
-                  handle
-                  title
-                  descriptionHtml
-                  updatedAt
-                }
-              }
-              pageInfo {
-                hasNextPage
-                endCursor
-              }
+    const response = await client.request(`
+      query getCollections($cursor: String) {
+        collections(first: 250, after: $cursor) {
+          edges {
+            node {
+              id
+              handle
+              title
+              descriptionHtml
+              updatedAt
             }
           }
-        `,
-        variables: { cursor },
-      },
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    `, {
+      variables: { cursor },
     });
 
-    const data = response.body as any;
+    const data = response.data as any;
 
-    if (data.data?.collections?.edges) {
-      collections.push(...data.data.collections.edges.map((edge: any) => edge.node));
+    if (data?.collections?.edges) {
+      collections.push(...data.collections.edges.map((edge: any) => edge.node));
     }
 
-    hasNextPage = data.data?.collections?.pageInfo?.hasNextPage || false;
-    cursor = data.data?.collections?.pageInfo?.endCursor || null;
+    hasNextPage = data?.collections?.pageInfo?.hasNextPage || false;
+    cursor = data?.collections?.pageInfo?.endCursor || null;
   }
 
   return collections;
