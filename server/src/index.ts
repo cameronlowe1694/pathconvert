@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import apiRoutes from './routes/api.js';
 import proxyRoutes from './routes/proxy.js';
+import webhookRoutes from './routes/webhooks.js';
 
 // Import job worker
 import { startJobWorker } from './services/jobWorker.js';
@@ -56,6 +57,7 @@ app.get('/health', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/apps/pathconvert', proxyRoutes);
+app.use('/webhooks', webhookRoutes);
 
 // Handle root URL - serve React app
 app.get('/', (req, res) => {
