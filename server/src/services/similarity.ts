@@ -42,18 +42,29 @@ function isExcludedFromRecommendations(handle: string, title: string): boolean {
  * Check if collection can recommend to target based on gender
  */
 function canRecommend(sourceGender: string, targetGender: string): boolean {
-  // men -> men + unisex
+  // Strict gender filtering - only allow exact matches or unisex
+
+  // Men's collections -> only recommend men's or unisex
   if (sourceGender === "men") {
-    return targetGender === "men" || targetGender === "unisex" || targetGender === "unknown";
+    return targetGender === "men" || targetGender === "unisex";
   }
 
-  // women -> women + unisex
+  // Women's collections -> only recommend women's or unisex
   if (sourceGender === "women") {
-    return targetGender === "women" || targetGender === "unisex" || targetGender === "unknown";
+    return targetGender === "women" || targetGender === "unisex";
   }
 
-  // unisex/unknown -> any
-  return true;
+  // Unisex collections -> can recommend to anyone
+  if (sourceGender === "unisex") {
+    return true;
+  }
+
+  // Unknown gender collections -> only recommend to other unknown or unisex (safer)
+  if (sourceGender === "unknown") {
+    return targetGender === "unknown" || targetGender === "unisex";
+  }
+
+  return false;
 }
 
 /**
