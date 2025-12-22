@@ -34,7 +34,116 @@ function verifyHMAC(query: any): boolean {
  */
 router.get('/script.js', (req, res) => {
   res.set('Content-Type', 'application/javascript');
-  res.sendFile('public/script.js', { root: process.cwd() + '/server' });
+  // Return the script content directly
+  const scriptContent = `
+/**
+ * PathConvert Auto-Injection Script
+ * Automatically adds recommendation buttons below collection intro text or H1
+ */
+(function() {
+  // Only run on collection pages
+  if (!window.location.pathname.includes('/collections/')) return;
+  if (window.location.pathname === '/collections') return;
+
+  const pathParts = window.location.pathname.split('/');
+  const collectionHandle = pathParts[pathParts.indexOf('collections') + 1];
+  if (!collectionHandle) return;
+
+  const shopDomain = window.Shopify && window.Shopify.shop;
+  if (!shopDomain) return;
+
+  const container = document.createElement('div');
+  container.className = 'pathconvert-recommendations';
+  container.style.margin = '2rem 0';
+  container.innerHTML = '<div class="pathconvert-loading" style="color: #666; font-size: 0.875rem;">Loading recommendations...</div>';
+
+  function findInjectionPoint() {
+    const selectors = [
+      '.collection__description',
+      '.collection-description',
+      '.collection-intro',
+      '[class*="collection"][class*="description"]',
+      '.rte',
+      'h1 + div.rte',
+      'h1 + p',
+    ];
+
+    for (const selector of selectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        return element.parentNode.insertBefore(container, element.nextSibling);
+      }
+    }
+
+    const h1 = document.querySelector('h1');
+    if (h1) {
+      return h1.parentNode.insertBefore(container, h1.nextSibling);
+    }
+
+    const main = document.querySelector('main') || document.querySelector('#MainContent') || document.body;
+    return main.insertBefore(container, main.firstChild);
+  }
+
+  findInjectionPoint();
+
+  const apiUrl = '/apps/pathconvert/buttons?shop=' + encodeURIComponent(shopDomain) + '&collectionHandle=' + encodeURIComponent(collectionHandle);
+
+  fetch(apiUrl)
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+      const loadingEl = container.querySelector('.pathconvert-loading');
+      if (loadingEl) loadingEl.remove();
+
+      if (!data.buttons || data.buttons.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+
+      const buttonsContainer = document.createElement('div');
+      buttonsContainer.className = 'pathconvert-buttons-container';
+      buttonsContainer.style.display = 'flex';
+      buttonsContainer.style.flexWrap = 'wrap';
+      buttonsContainer.style.gap = '0.75rem';
+      buttonsContainer.style.justifyContent = 'flex-start';
+
+      data.buttons.forEach(function(button) {
+        const link = document.createElement('a');
+        link.href = button.url;
+        link.className = 'pathconvert-button';
+        link.textContent = button.title;
+        link.style.display = 'inline-block';
+        link.style.padding = '0.75rem 1.5rem';
+        link.style.backgroundColor = '#000';
+        link.style.color = '#fff';
+        link.style.textDecoration = 'none';
+        link.style.borderRadius = '0.25rem';
+        link.style.fontSize = '0.875rem';
+        link.style.fontWeight = '500';
+        link.style.transition = 'background-color 0.2s';
+
+        link.addEventListener('mouseenter', function() {
+          link.style.backgroundColor = '#333';
+        });
+        link.addEventListener('mouseleave', function() {
+          link.style.backgroundColor = '#000';
+        });
+
+        buttonsContainer.appendChild(link);
+      });
+
+      container.appendChild(buttonsContainer);
+    })
+    .catch(function(error) {
+      console.error('PathConvert error:', error);
+      const loadingEl = container.querySelector('.pathconvert-loading');
+      if (loadingEl) {
+        loadingEl.style.color = '#999';
+        loadingEl.textContent = 'Failed to load recommendations';
+      }
+    });
+})();
+  `;
+  res.send(scriptContent);
 });
 
 /**
