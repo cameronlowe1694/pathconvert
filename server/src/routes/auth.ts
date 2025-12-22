@@ -110,10 +110,15 @@ router.get('/callback', async (req, res) => {
 
     // Install ScriptTag for auto-injection of buttons (no theme editing required)
     try {
+      console.log('[Auth Callback] Installing script tag...');
       const { installScriptTag } = await import('../services/scriptTag.js');
       await installScriptTag(shop, accessToken);
+      console.log('[Auth Callback] Script tag installation complete');
     } catch (error) {
       console.error('[Auth Callback] Failed to install script tag:', error);
+      if (error instanceof Error) {
+        console.error('[Auth Callback] Error details:', error.message, error.stack);
+      }
       // Don't fail the OAuth process if script tag fails
     }
 
