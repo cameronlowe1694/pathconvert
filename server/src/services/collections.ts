@@ -193,12 +193,13 @@ export async function syncCollections(shopId: string, shop: string, accessToken:
       });
 
       if (existing) {
-        // Update if changed
+        // Update if changed OR if gender classification differs
         if (
           existing.title !== sc.title ||
           existing.descriptionText !== descriptionText ||
           existing.productTitles !== productTitles ||
-          existing.handle !== sc.handle
+          existing.handle !== sc.handle ||
+          existing.genderCategory !== genderCategory
         ) {
           await prisma.collection.update({
             where: { id: existing.id },
@@ -213,6 +214,7 @@ export async function syncCollections(shopId: string, shop: string, accessToken:
             },
           });
           results.updated++;
+          console.log(`[Collection Sync] Updated gender for "${sc.title}": ${genderCategory}`);
         } else {
           results.skipped++;
         }
