@@ -2,6 +2,43 @@ import prisma from "../db.js";
 import { cosineSimilarity } from "./embeddings.js";
 
 /**
+ * Check if collection should be excluded from recommendations
+ * Excludes generic/automated collections like "Home page", "Frontpage", "All", etc.
+ */
+function isExcludedFromRecommendations(handle: string, title: string): boolean {
+  const excludedHandles = [
+    'frontpage',
+    'home-page',
+    'homepage',
+    'all',
+    'all-products',
+    'automated-collection',
+    'hydrogen', // Shopify demo collection
+  ];
+
+  const excludedTitlePatterns = [
+    /^home\s*page$/i,
+    /^all$/i,
+    /^all\s*products$/i,
+    /^automated/i,
+  ];
+
+  // Check handle
+  if (excludedHandles.includes(handle.toLowerCase())) {
+    return true;
+  }
+
+  // Check title patterns
+  for (const pattern of excludedTitlePatterns) {
+    if (pattern.test(title)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Check if collection can recommend to target based on gender
  */
 function canRecommend(sourceGender: string, targetGender: string): boolean {
@@ -56,7 +93,12 @@ export async function buildSimilarityEdges(shopId: string) {
     },
   });
 
-  if (collections.length < 2) {
+  // Filter out excluded collections (frontpage, automated, etc.)
+  const validCollections = collections.filter(
+    (c: any) => !isExcludedFromRecommendations(c.handle, c.title)
+  );
+
+  if (validCollections.length < 2) {
     return { edgesCreated: 0, collectionsProcessed: 0 };
   }
 
@@ -71,7 +113,7 @@ export async function buildSimilarityEdges(shopId: string) {
 
   let edgesCreated = 0;
 
-  for (const source of collections) {
+  for (const source of validCollections) {
     const sourceVector = JSON.parse(source.embedding!.embeddingVector);
     const similarities: Array<{
       collectionId: string;
@@ -79,8 +121,8 @@ export async function buildSimilarityEdges(shopId: string) {
       genderCategory: string;
     }> = [];
 
-    // Calculate similarity to all other collections
-    for (const target of collections) {
+    // Calculate similarity to all other valid collections
+    for (const target of validCollections) {
       if (source.id === target.id) continue;
 
       // Check gender compatibility
@@ -136,7 +178,7 @@ export async function buildSimilarityEdges(shopId: string) {
 
   return {
     edgesCreated,
-    collectionsProcessed: collections.length,
+    collectionsProcessed: validCollections.length,
   };
 }
 
