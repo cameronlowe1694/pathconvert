@@ -20,15 +20,9 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    // Check if shop already exists and has access token
-    const existingShop = await prisma.shop.findUnique({
-      where: { shopDomain: shop },
-    });
-
-    if (existingShop?.accessToken) {
-      console.log('[Auth] Shop already authorized, redirecting to app');
-      return res.redirect(`/?shop=${shop}&host=${req.query.host || ''}`);
-    }
+    // Always allow re-authorization (even if shop exists) to support reinstallation with fresh tokens
+    // This is critical for development stores where tokens can become invalid after uninstall
+    console.log('[Auth] Starting OAuth flow for shop:', shop);
 
     // Generate OAuth state and store in database
     const state = await oauthStateManager.create(shop);

@@ -558,4 +558,26 @@ router.post('/billing/cancel', async (req, res) => {
   }
 });
 
+// DELETE /api/admin/delete-shop - Delete shop and all related data (for testing/reinstallation)
+// WARNING: This is a destructive operation - use with caution
+router.delete('/admin/delete-shop', async (req, res) => {
+  try {
+    const { shopId } = req as AuthenticatedRequest;
+
+    console.log('[Admin] Deleting shop and all related data:', shopId);
+
+    // Delete shop (cascade will delete all related records)
+    await prisma.shop.delete({
+      where: { id: shopId },
+    });
+
+    console.log('[Admin] Shop deleted successfully');
+
+    res.json({ message: 'Shop and all related data deleted successfully' });
+  } catch (error) {
+    console.error('Delete shop error:', error);
+    res.status(500).json({ error: 'Failed to delete shop' });
+  }
+});
+
 export default router;
