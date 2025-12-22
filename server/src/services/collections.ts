@@ -1,5 +1,10 @@
 import prisma from "../db.js";
 import { createShopifyGraphQLClient } from "../utils/shopify.js";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const SALE_KEYWORDS = [
   "sale",
@@ -14,48 +19,52 @@ const SALE_KEYWORDS = [
   "promo",
 ];
 
-const GENDER_PATTERNS = {
-  men: ["men", "mens", "man", "male", "him", "his", "guys", "gentleman"],
-  women: [
-    "women",
-    "womens",
-    "woman",
-    "female",
-    "her",
-    "hers",
-    "ladies",
-    "girls",
-  ],
-};
-
 /**
- * Classify gender category from title and handle
+ * Classify gender category using OpenAI (more reliable than regex)
  */
-function classifyGender(title: string, handle: string): string {
-  const text = `${title} ${handle}`.toLowerCase();
+async function classifyGenderWithAI(
+  title: string,
+  handle: string,
+  description: string,
+  productTitles: string | null
+): Promise<string> {
+  try {
+    const context = `
+Collection Title: ${title}
+Handle: ${handle}
+Description: ${description || "None"}
+Sample Products: ${productTitles?.split(',').slice(0, 5).join(', ') || "None"}
+`.trim();
 
-  let menMatch = false;
-  let womenMatch = false;
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a gender classifier for e-commerce collections. Respond with ONLY one word: 'men', 'women', 'unisex', or 'unknown'. Base your classification on the collection name, description, and sample products."
+        },
+        {
+          role: "user",
+          content: context
+        }
+      ],
+      temperature: 0,
+      max_tokens: 10,
+    });
 
-  for (const keyword of GENDER_PATTERNS.men) {
-    if (text.includes(keyword)) {
-      menMatch = true;
-      break;
+    const classification = response.choices[0]?.message?.content?.toLowerCase().trim() || "unknown";
+
+    // Validate response
+    if (["men", "women", "unisex", "unknown"].includes(classification)) {
+      return classification;
     }
+
+    return "unknown";
+  } catch (error) {
+    console.error("[Gender Classification] OpenAI error:", error);
+    // Fallback to unknown on error
+    return "unknown";
   }
-
-  for (const keyword of GENDER_PATTERNS.women) {
-    if (text.includes(keyword)) {
-      womenMatch = true;
-      break;
-    }
-  }
-
-  if (menMatch && !womenMatch) return "men";
-  if (womenMatch && !menMatch) return "women";
-  if (menMatch && womenMatch) return "unisex";
-
-  return "unknown"; // Treat as unisex
 }
 
 /**
@@ -157,7 +166,6 @@ export async function syncCollections(shopId: string, shop: string, accessToken:
   for (const sc of shopifyCollections) {
     const shopifyId = sc.id.replace("gid://shopify/Collection/", "");
     const descriptionText = cleanDescription(sc.descriptionHtml);
-    const genderCategory = classifyGender(sc.title, sc.handle);
     const isExcludedSale = isSaleCollection(sc.title, sc.handle);
 
     // Extract product titles for AI context (up to 50 products)
@@ -165,6 +173,14 @@ export async function syncCollections(shopId: string, shop: string, accessToken:
       ?.map((edge: any) => edge.node.title)
       .filter(Boolean)
       .join(', ') || null;
+
+    // Classify gender using AI
+    const genderCategory = await classifyGenderWithAI(
+      sc.title,
+      sc.handle,
+      descriptionText,
+      productTitles
+    );
 
     try {
       const existing = await prisma.collection.findUnique({
