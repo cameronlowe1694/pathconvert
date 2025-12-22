@@ -178,15 +178,21 @@ export default function Dashboard({ shop }: DashboardProps) {
       secondaryActions={[
         { content: 'Manage Collections', url: '/collections' },
         { content: 'Settings', url: '/settings' },
+        { content: 'Billing', url: '/billing' },
       ]}
     >
       <Layout>
         {needsSubscription && (
           <Layout.Section>
             <Banner tone="warning">
-              <Text as="p">
-                Active subscription required to run analysis and display recommendations.
-              </Text>
+              <BlockStack gap="200">
+                <Text as="p">
+                  Active subscription required to run analysis and display recommendations.
+                </Text>
+                <InlineStack>
+                  <Link url="/billing">View Plans</Link>
+                </InlineStack>
+              </BlockStack>
             </Banner>
           </Layout.Section>
         )}

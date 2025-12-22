@@ -3,6 +3,7 @@ import { AppProvider } from '@shopify/polaris';
 import Dashboard from './pages/Dashboard';
 import Collections from './pages/Collections';
 import Settings from './pages/Settings';
+import Billing from './pages/Billing';
 
 function App() {
   // Get shop parameter from URL
@@ -17,6 +18,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard shop={shop} />} />
           <Route path="/collections" element={<Collections shop={shop} />} />
           <Route path="/settings" element={<Settings shop={shop} />} />
+          <Route path="/billing" element={<Billing shop={shop} />} />
         </Routes>
       </Router>
     </AppProvider>

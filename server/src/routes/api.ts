@@ -316,4 +316,195 @@ router.post('/cleanup', async (req, res) => {
   }
 });
 
+// GET /api/billing - Get billing info
+router.get('/billing', async (req, res) => {
+  try {
+    const { shopId } = req as AuthenticatedRequest;
+
+    const billing = await prisma.billing.findUnique({
+      where: { shopId },
+    });
+
+    res.json({ billing });
+  } catch (error) {
+    console.error('Get billing error:', error);
+    res.status(500).json({ error: 'Failed to get billing info' });
+  }
+});
+
+// POST /api/billing/subscribe - Create Shopify subscription
+router.post('/billing/subscribe', async (req, res) => {
+  try {
+    const authReq = req as unknown as AuthenticatedRequest;
+    const { shopId } = authReq;
+    const { interval } = req.body;
+
+    if (!['monthly', 'annual'].includes(interval)) {
+      return res.status(400).json({ error: 'Invalid interval. Must be monthly or annual' });
+    }
+
+    // Get shop to retrieve access token
+    const shop = await prisma.shop.findUnique({
+      where: { id: shopId },
+    });
+
+    if (!shop) {
+      return res.status(404).json({ error: 'Shop not found' });
+    }
+
+    // Create Shopify GraphQL client
+    const { createShopifyGraphQLClient } = await import('../utils/shopify.js');
+    const client = createShopifyGraphQLClient(shop.shopDomain, shop.accessToken);
+
+    // Define pricing
+    const pricing = {
+      monthly: { amount: 29, currencyCode: 'GBP' },
+      annual: { amount: 290, currencyCode: 'GBP' },
+    };
+
+    const selectedPricing = pricing[interval as 'monthly' | 'annual'];
+
+    // Create subscription using Shopify Billing API
+    const mutation = `
+      mutation AppSubscriptionCreate($name: String!, $returnUrl: URL!, $test: Boolean, $lineItems: [AppSubscriptionLineItemInput!]!) {
+        appSubscriptionCreate(
+          name: $name
+          returnUrl: $returnUrl
+          test: $test
+          lineItems: $lineItems
+        ) {
+          appSubscription {
+            id
+            status
+          }
+          confirmationUrl
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      name: `PathConvert ${interval === 'annual' ? 'Annual' : 'Monthly'} Plan`,
+      returnUrl: `${process.env.APP_URL}/billing?charge_id={CHARGE_ID}`,
+      test: process.env.NODE_ENV !== 'production',
+      lineItems: [
+        {
+          plan: {
+            appRecurringPricingDetails: {
+              price: { amount: selectedPricing.amount, currencyCode: selectedPricing.currencyCode },
+              interval: interval === 'annual' ? 'ANNUAL' : 'EVERY_30_DAYS',
+            },
+          },
+        },
+      ],
+    };
+
+    const response = await client.request(mutation, { variables });
+    const { appSubscriptionCreate } = response.data as any;
+
+    if (appSubscriptionCreate.userErrors?.length > 0) {
+      console.error('Shopify billing errors:', appSubscriptionCreate.userErrors);
+      return res.status(400).json({
+        error: appSubscriptionCreate.userErrors[0].message,
+      });
+    }
+
+    // Store pending subscription in database
+    await prisma.billing.upsert({
+      where: { shopId },
+      create: {
+        shopId,
+        plan: 'pathconvert',
+        interval,
+        status: 'pending',
+        shopifySubscriptionId: appSubscriptionCreate.appSubscription.id,
+      },
+      update: {
+        interval,
+        status: 'pending',
+        shopifySubscriptionId: appSubscriptionCreate.appSubscription.id,
+      },
+    });
+
+    res.json({
+      confirmationUrl: appSubscriptionCreate.confirmationUrl,
+      subscriptionId: appSubscriptionCreate.appSubscription.id,
+    });
+  } catch (error) {
+    console.error('Subscribe error:', error);
+    res.status(500).json({ error: 'Failed to create subscription' });
+  }
+});
+
+// POST /api/billing/cancel - Cancel subscription
+router.post('/billing/cancel', async (req, res) => {
+  try {
+    const { shopId } = req as AuthenticatedRequest;
+
+    const billing = await prisma.billing.findUnique({
+      where: { shopId },
+    });
+
+    if (!billing || !billing.shopifySubscriptionId) {
+      return res.status(404).json({ error: 'No active subscription found' });
+    }
+
+    // Get shop to retrieve access token
+    const shop = await prisma.shop.findUnique({
+      where: { id: shopId },
+    });
+
+    if (!shop) {
+      return res.status(404).json({ error: 'Shop not found' });
+    }
+
+    // Create Shopify GraphQL client
+    const { createShopifyGraphQLClient } = await import('../utils/shopify.js');
+    const client = createShopifyGraphQLClient(shop.shopDomain, shop.accessToken);
+
+    // Cancel subscription via Shopify API
+    const mutation = `
+      mutation AppSubscriptionCancel($id: ID!) {
+        appSubscriptionCancel(id: $id) {
+          appSubscription {
+            id
+            status
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    const response = await client.request(mutation, {
+      variables: { id: billing.shopifySubscriptionId },
+    });
+
+    const { appSubscriptionCancel } = response.data as any;
+
+    if (appSubscriptionCancel.userErrors?.length > 0) {
+      console.error('Shopify cancel errors:', appSubscriptionCancel.userErrors);
+      return res.status(400).json({
+        error: appSubscriptionCancel.userErrors[0].message,
+      });
+    }
+
+    // Update billing status
+    await prisma.billing.update({
+      where: { shopId },
+      data: { status: 'cancelled' },
+    });
+
+    res.json({ message: 'Subscription cancelled successfully' });
+  } catch (error) {
+    console.error('Cancel subscription error:', error);
+    res.status(500).json({ error: 'Failed to cancel subscription' });
+  }
+});
+
 export default router;
