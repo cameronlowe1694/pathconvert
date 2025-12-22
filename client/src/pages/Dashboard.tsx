@@ -30,6 +30,11 @@ interface ShopData {
     canRenderButtons: boolean;
     status: string;
   };
+  metrics: {
+    totalCollections: number;
+    enabledCollections: number;
+    totalButtons: number;
+  };
 }
 
 interface JobStatus {
@@ -233,8 +238,8 @@ export default function Dashboard({ shop }: DashboardProps) {
               <Text as="h2" variant="headingMd">
                 Status
               </Text>
-              <InlineStack gap="400" wrap={false}>
-                <div style={{ flex: 1 }}>
+              <InlineStack gap="400" wrap={true}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
                   <Text as="p" tone="subdued">
                     Last Analysis
                   </Text>
@@ -244,20 +249,28 @@ export default function Dashboard({ shop }: DashboardProps) {
                       : 'Never'}
                   </Text>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <Text as="p" tone="subdued">
-                    Cache Version
-                  </Text>
-                  <Text as="p" variant="bodyMd">
-                    {shopData.shop.cacheVersion}
-                  </Text>
-                </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
                   <Text as="p" tone="subdued">
                     Subscription Status
                   </Text>
                   <Text as="p" variant="bodyMd">
-                    {entitlement.status}
+                    {entitlement.canRunJobs ? 'Active' : 'Inactive'}
+                  </Text>
+                </div>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <Text as="p" tone="subdued">
+                    Enabled Collections
+                  </Text>
+                  <Text as="p" variant="bodyMd">
+                    {shopData.metrics.enabledCollections} / {shopData.metrics.totalCollections}
+                  </Text>
+                </div>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <Text as="p" tone="subdued">
+                    Total Buttons Live
+                  </Text>
+                  <Text as="p" variant="bodyMd">
+                    {shopData.metrics.totalButtons}
                   </Text>
                 </div>
               </InlineStack>

@@ -33,6 +33,25 @@ router.get('/shop', async (req, res) => {
     // Get entitlement
     const entitlement = await getEntitlement(shopId);
 
+    // Get metrics
+    const totalCollections = await prisma.collection.count({
+      where: { shopId },
+    });
+
+    const enabledCollections = await prisma.collection.count({
+      where: { shopId, isEnabled: true },
+    });
+
+    // Count total buttons (edges from enabled collections)
+    const totalButtons = await prisma.edge.count({
+      where: {
+        sourceCollection: {
+          shopId,
+          isEnabled: true,
+        },
+      },
+    });
+
     res.json({
       shop: {
         id: shop.id,
@@ -43,6 +62,11 @@ router.get('/shop', async (req, res) => {
       settings: shop.settings,
       billing: shop.billing,
       entitlement,
+      metrics: {
+        totalCollections,
+        enabledCollections,
+        totalButtons,
+      },
     });
   } catch (error) {
     console.error('Get shop error:', error);
