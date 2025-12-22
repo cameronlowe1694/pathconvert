@@ -164,6 +164,7 @@ export default function Dashboard({ shop }: DashboardProps) {
 
   const { entitlement } = shopData;
   const needsSubscription = !entitlement.canRunJobs;
+  const isDevelopmentMode = entitlement.status === 'development';
 
   return (
     <Page
@@ -182,7 +183,22 @@ export default function Dashboard({ shop }: DashboardProps) {
       ]}
     >
       <Layout>
-        {needsSubscription && (
+        {isDevelopmentMode && (
+          <Layout.Section>
+            <Banner tone="info">
+              <BlockStack gap="200">
+                <Text as="p" fontWeight="semibold">
+                  Development Mode Active
+                </Text>
+                <Text as="p">
+                  Billing checks are disabled for development stores. All features are available for testing.
+                </Text>
+              </BlockStack>
+            </Banner>
+          </Layout.Section>
+        )}
+
+        {needsSubscription && !isDevelopmentMode && (
           <Layout.Section>
             <Banner tone="warning">
               <BlockStack gap="200">
