@@ -30,27 +30,40 @@ function verifyHMAC(query: any): boolean {
 }
 
 /**
+ * GET /apps/pathconvert/script.js - Serve auto-injection script
+ */
+router.get('/script.js', (req, res) => {
+  res.set('Content-Type', 'application/javascript');
+  res.sendFile('public/script.js', { root: process.cwd() + '/server' });
+});
+
+/**
  * GET /apps/pathconvert/buttons - Render collection recommendation buttons
  */
 router.get('/buttons', async (req, res) => {
   try {
-    // Verify HMAC
-    if (!verifyHMAC(req.query)) {
+    const { shop, collectionHandle, path_prefix } = req.query;
+
+    // Support both App Proxy (with HMAC) and direct calls (from script tag)
+    const isAppProxy = !!req.query.signature;
+
+    if (isAppProxy && !verifyHMAC(req.query)) {
       console.error('Invalid HMAC signature');
       return res.status(403).json({ error: 'Invalid signature' });
     }
-
-    const { shop, path_prefix } = req.query;
 
     if (!shop || typeof shop !== 'string') {
       return res.status(400).json({ error: 'Missing shop parameter' });
     }
 
-    // Extract collection handle from path_prefix
+    // Extract collection handle from path_prefix (App Proxy) or collectionHandle (direct)
     // path_prefix format: /collections/mens-clothing
-    const handle = typeof path_prefix === 'string'
-      ? path_prefix.replace('/collections/', '')
-      : '';
+    let handle = '';
+    if (typeof collectionHandle === 'string' && collectionHandle) {
+      handle = collectionHandle;
+    } else if (typeof path_prefix === 'string') {
+      handle = path_prefix.replace('/collections/', '');
+    }
 
     if (!handle) {
       // Not on a collection page

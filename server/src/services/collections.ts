@@ -110,6 +110,13 @@ export async function fetchCollectionsFromShopify(shop: string, accessToken: str
               title
               descriptionHtml
               updatedAt
+              products(first: 50) {
+                edges {
+                  node {
+                    title
+                  }
+                }
+              }
             }
           }
           pageInfo {
@@ -153,6 +160,12 @@ export async function syncCollections(shopId: string, shop: string, accessToken:
     const genderCategory = classifyGender(sc.title, sc.handle);
     const isExcludedSale = isSaleCollection(sc.title, sc.handle);
 
+    // Extract product titles for AI context (up to 50 products)
+    const productTitles = sc.products?.edges
+      ?.map((edge: any) => edge.node.title)
+      .filter(Boolean)
+      .join(', ') || null;
+
     try {
       const existing = await prisma.collection.findUnique({
         where: {
@@ -168,6 +181,7 @@ export async function syncCollections(shopId: string, shop: string, accessToken:
         if (
           existing.title !== sc.title ||
           existing.descriptionText !== descriptionText ||
+          existing.productTitles !== productTitles ||
           existing.handle !== sc.handle
         ) {
           await prisma.collection.update({
@@ -176,6 +190,7 @@ export async function syncCollections(shopId: string, shop: string, accessToken:
               title: sc.title,
               handle: sc.handle,
               descriptionText,
+              productTitles,
               genderCategory,
               isExcludedSale,
               updatedAtShopify: new Date(sc.updatedAt),
@@ -194,6 +209,7 @@ export async function syncCollections(shopId: string, shop: string, accessToken:
             handle: sc.handle,
             title: sc.title,
             descriptionText,
+            productTitles,
             genderCategory,
             isExcludedSale,
             isEnabled: !isExcludedSale, // Disable sale collections by default

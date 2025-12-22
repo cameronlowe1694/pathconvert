@@ -22,9 +22,16 @@ function buildEmbeddingText(collection: any): string {
 
   // Description
   if (collection.descriptionText) {
-    // Limit description to 5000 chars
-    const desc = collection.descriptionText.slice(0, 5000);
+    // Limit description to 3000 chars
+    const desc = collection.descriptionText.slice(0, 3000);
     parts.push(`Description: ${desc}`);
+  }
+
+  // Product titles (provides context even when description is empty)
+  if (collection.productTitles) {
+    // Limit product titles to 2000 chars
+    const products = collection.productTitles.slice(0, 2000);
+    parts.push(`Products: ${products}`);
   }
 
   // Gender category
@@ -49,6 +56,7 @@ export async function generateEmbedding(
     select: {
       title: true,
       descriptionText: true,
+      productTitles: true,
       genderCategory: true,
     },
   });
@@ -80,6 +88,7 @@ export async function generateAllEmbeddings(shopId: string) {
       id: true,
       title: true,
       descriptionText: true,
+      productTitles: true,
       genderCategory: true,
     },
   });

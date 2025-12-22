@@ -51,6 +51,7 @@ model Collection {
   handle              String
   title               String
   descriptionText     String?
+  productTitles       String?     // Comma-separated list of product titles for AI context
   genderCategory      String      @default("unknown") // men, women, unisex, unknown
   isExcludedSale      Boolean     @default(false)
   isEnabled           Boolean     @default(true)
