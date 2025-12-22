@@ -352,10 +352,6 @@ router.post('/billing/subscribe', async (req, res) => {
       return res.status(404).json({ error: 'Shop not found' });
     }
 
-    // Create Shopify GraphQL client
-    const { createShopifyGraphQLClient } = await import('../utils/shopify.js');
-    const client = createShopifyGraphQLClient(shop.shopDomain, shop.accessToken);
-
     // Define pricing
     const pricing = {
       monthly: { amount: 29, currencyCode: 'GBP' },
@@ -365,6 +361,7 @@ router.post('/billing/subscribe', async (req, res) => {
     const selectedPricing = pricing[interval as 'monthly' | 'annual'];
 
     // Create subscription using Shopify Billing API
+    // Using direct fetch instead of @shopify/shopify-api GraphQL client to avoid 401 errors
     const mutation = `
       mutation AppSubscriptionCreate($name: String!, $returnUrl: URL!, $test: Boolean, $lineItems: [AppSubscriptionLineItemInput!]!) {
         appSubscriptionCreate(
@@ -402,8 +399,37 @@ router.post('/billing/subscribe', async (req, res) => {
       ],
     };
 
-    const response = await client.request(mutation, { variables });
-    const { appSubscriptionCreate } = response.data as any;
+    console.log('[Billing] Creating subscription with direct fetch to avoid GraphQL client 401 errors');
+    console.log('[Billing] Test mode:', process.env.NODE_ENV !== 'production');
+
+    // Use direct fetch with X-Shopify-Access-Token header (official Shopify API pattern)
+    const graphqlResponse = await fetch(`https://${shop.shopDomain}/admin/api/2024-10/graphql.json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': shop.accessToken,
+      },
+      body: JSON.stringify({ query: mutation, variables }),
+    });
+
+    if (!graphqlResponse.ok) {
+      const errorText = await graphqlResponse.text();
+      console.error('[Billing] GraphQL request failed:', graphqlResponse.status, errorText);
+      return res.status(graphqlResponse.status).json({
+        error: `Shopify API request failed: ${graphqlResponse.statusText}`
+      });
+    }
+
+    const response = await graphqlResponse.json() as any;
+
+    if (response.errors) {
+      console.error('[Billing] GraphQL errors:', response.errors);
+      return res.status(400).json({
+        error: response.errors[0]?.message || 'GraphQL request failed'
+      });
+    }
+
+    const { appSubscriptionCreate } = response.data;
 
     if (appSubscriptionCreate.userErrors?.length > 0) {
       console.error('Shopify billing errors:', appSubscriptionCreate.userErrors);
@@ -461,11 +487,8 @@ router.post('/billing/cancel', async (req, res) => {
       return res.status(404).json({ error: 'Shop not found' });
     }
 
-    // Create Shopify GraphQL client
-    const { createShopifyGraphQLClient } = await import('../utils/shopify.js');
-    const client = createShopifyGraphQLClient(shop.shopDomain, shop.accessToken);
-
     // Cancel subscription via Shopify API
+    // Using direct fetch instead of @shopify/shopify-api GraphQL client to avoid 401 errors
     const mutation = `
       mutation AppSubscriptionCancel($id: ID!) {
         appSubscriptionCancel(id: $id) {
@@ -481,11 +504,39 @@ router.post('/billing/cancel', async (req, res) => {
       }
     `;
 
-    const response = await client.request(mutation, {
-      variables: { id: billing.shopifySubscriptionId },
+    console.log('[Billing] Cancelling subscription with direct fetch');
+
+    // Use direct fetch with X-Shopify-Access-Token header (official Shopify API pattern)
+    const graphqlResponse = await fetch(`https://${shop.shopDomain}/admin/api/2024-10/graphql.json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': shop.accessToken,
+      },
+      body: JSON.stringify({
+        query: mutation,
+        variables: { id: billing.shopifySubscriptionId },
+      }),
     });
 
-    const { appSubscriptionCancel } = response.data as any;
+    if (!graphqlResponse.ok) {
+      const errorText = await graphqlResponse.text();
+      console.error('[Billing] GraphQL cancel request failed:', graphqlResponse.status, errorText);
+      return res.status(graphqlResponse.status).json({
+        error: `Shopify API request failed: ${graphqlResponse.statusText}`
+      });
+    }
+
+    const response = await graphqlResponse.json() as any;
+
+    if (response.errors) {
+      console.error('[Billing] GraphQL cancel errors:', response.errors);
+      return res.status(400).json({
+        error: response.errors[0]?.message || 'GraphQL request failed'
+      });
+    }
+
+    const { appSubscriptionCancel } = response.data;
 
     if (appSubscriptionCancel.userErrors?.length > 0) {
       console.error('Shopify cancel errors:', appSubscriptionCancel.userErrors);
