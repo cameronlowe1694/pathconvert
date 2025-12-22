@@ -178,7 +178,7 @@ export default function Dashboard({ shop }: DashboardProps) {
       secondaryActions={[
         { content: 'Manage Collections', url: '/collections' },
         { content: 'Settings', url: '/settings' },
-        { content: 'Billing', url: '/billing' },
+        { content: 'Plans & Billing', url: '/billing' },
       ]}
     >
       <Layout>
