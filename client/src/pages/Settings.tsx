@@ -27,6 +27,7 @@ export default function Settings({ shop }: SettingsProps) {
   const [settings, setSettings] = useState<SettingsData | null>(null);
   const [maxButtons, setMaxButtons] = useState('15');
   const [buttonStyle, setButtonStyle] = useState('pill');
+  const [alignment, setAlignment] = useState('left');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -43,6 +44,7 @@ export default function Settings({ shop }: SettingsProps) {
         setSettings(data.settings);
         setMaxButtons(String(data.settings.maxButtons));
         setButtonStyle(data.settings.buttonStyle);
+        setAlignment(data.settings.alignment);
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -64,6 +66,7 @@ export default function Settings({ shop }: SettingsProps) {
         body: JSON.stringify({
           maxButtons: parseInt(maxButtons, 10),
           buttonStyle,
+          alignment,
         }),
       });
 
@@ -138,6 +141,17 @@ export default function Settings({ shop }: SettingsProps) {
                   value={buttonStyle}
                   onChange={setButtonStyle}
                   helpText="Visual style of recommendation buttons"
+                />
+                <Select
+                  label="Button container alignment"
+                  options={[
+                    { label: 'Left (inline with H1 padding)', value: 'left' },
+                    { label: 'Center', value: 'center' },
+                    { label: 'Right', value: 'right' },
+                  ]}
+                  value={alignment}
+                  onChange={setAlignment}
+                  helpText="Horizontal alignment of the button container to match your site layout"
                 />
               </FormLayout>
             </BlockStack>

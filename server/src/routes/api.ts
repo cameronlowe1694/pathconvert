@@ -223,7 +223,7 @@ router.get('/settings', async (req, res) => {
 router.post('/settings', async (req, res) => {
   try {
     const { shopId } = req as AuthenticatedRequest;
-    const { maxButtons, buttonStyle } = req.body;
+    const { maxButtons, buttonStyle, alignment } = req.body;
 
     // Validate
     if (maxButtons !== undefined && (maxButtons < 1 || maxButtons > 30)) {
@@ -234,11 +234,16 @@ router.post('/settings', async (req, res) => {
       return res.status(400).json({ error: 'Invalid buttonStyle' });
     }
 
+    if (alignment !== undefined && !['left', 'center', 'right'].includes(alignment)) {
+      return res.status(400).json({ error: 'Invalid alignment' });
+    }
+
     const settings = await prisma.settings.update({
       where: { shopId },
       data: {
         ...(maxButtons !== undefined && { maxButtons }),
         ...(buttonStyle !== undefined && { buttonStyle }),
+        ...(alignment !== undefined && { alignment }),
       },
     });
 
