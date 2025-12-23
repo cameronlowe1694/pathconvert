@@ -1,0 +1,42 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "fae7538a6fc12ec615cdfc413f17638f"
+name = "PathConvert"
+application_url = "https://pathconvert.onrender.com"
+embedded = true
+
+[webhooks]
+api_version = "2024-10"
+
+# Standard operational webhooks
+[[webhooks.subscriptions]]
+topics = ["app_uninstalled"]
+uri = "https://pathconvert.onrender.com/api/webhooks/app-uninstalled"
+
+# MANDATORY COMPLIANCE WEBHOOKS (Required for Shopify App Store)
+# These must respond with 200 and verify HMAC signatures
+[[webhooks.subscriptions]]
+topics = ["customers_data_request"]
+uri = "https://pathconvert.onrender.com/api/webhooks/customers-data-request"
+
+[[webhooks.subscriptions]]
+topics = ["customers_redact"]
+uri = "https://pathconvert.onrender.com/api/webhooks/customers-redact"
+
+[[webhooks.subscriptions]]
+topics = ["shop_redact"]
+uri = "https://pathconvert.onrender.com/api/webhooks/shop-redact"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products,write_script_tags,read_content"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [ "https://pathconvert.onrender.com/auth/callback" ]
+
+[app_proxy]
+url = "https://pathconvert.onrender.com/apps/pathconvert"
+subpath = "pathconvert"
+prefix = "apps"

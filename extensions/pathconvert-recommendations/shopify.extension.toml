@@ -1,6 +1,7 @@
 api_version = "2024-10"
 
 [[extensions]]
+uid = "ebfd73fa-0bbb-e267-8ce0-0663d661dd16707d750b"
 type = "theme"
 name = "PathConvert Recommendations"
 handle = "pathconvert-recommendations"

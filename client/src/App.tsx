@@ -19,7 +19,6 @@ function App() {
           <Route path="/collections" element={<Collections shop={shop} />} />
           <Route path="/settings" element={<Settings shop={shop} />} />
           <Route path="/billing" element={<Billing shop={shop} />} />
-          <Route path="/admin" element={<Admin />} />
         </Routes>
       </Router>
     </AppProvider>
