@@ -124,9 +124,9 @@ router.get('/script.js', (req, res) => {
         borderRadius = '0';
       }
 
-      // Get theme's paragraph styles for typography inheritance
-      var themeParagraph = document.querySelector('p, .rte, .product-description') || document.body;
-      var computedStyle = window.getComputedStyle(themeParagraph);
+      // Get theme's link styles for typography inheritance
+      var themeLink = document.querySelector('a, footer a, .footer a, p a') || document.body;
+      var computedStyle = window.getComputedStyle(themeLink);
       var themeFontFamily = computedStyle.fontFamily;
       var themeFontSize = computedStyle.fontSize;
       var themeTextColor = computedStyle.color;
@@ -146,17 +146,7 @@ router.get('/script.js', (req, res) => {
         link.style.fontFamily = themeFontFamily;
         link.style.fontSize = themeFontSize;
         link.style.fontWeight = '500';
-        link.style.transition = 'all 0.2s ease';
         link.style.cursor = 'pointer';
-
-        link.addEventListener('mouseenter', function() {
-          link.style.backgroundColor = themeTextColor;
-          link.style.color = '#fff';
-        });
-        link.addEventListener('mouseleave', function() {
-          link.style.backgroundColor = 'transparent';
-          link.style.color = themeTextColor;
-        });
 
         buttonsContainer.appendChild(link);
       });
