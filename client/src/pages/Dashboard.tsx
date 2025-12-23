@@ -327,16 +327,13 @@ export default function Dashboard({ shop }: DashboardProps) {
                   PathConvert uses AI to analyze your collections (titles, descriptions, and products) to automatically generate smart, context-aware recommendations.
                 </Text>
                 <Text as="p">
-                  • <strong>Gender-aware filtering:</strong> AI classifies collections by gender to prevent cross-gender recommendations (e.g., men's collections only recommend to other men's or unisex collections)
-                </Text>
-                <Text as="p">
                   • <strong>Auto-injection:</strong> Buttons appear automatically below collection descriptions—no theme editing required
                 </Text>
                 <Text as="p">
                   • <strong>Broken link protection:</strong> Deleted collections are automatically detected and removed during re-analysis to maintain SEO health
                 </Text>
                 <Text as="p">
-                  • <strong>Smart exclusions:</strong> Generic pages like "Home page" and sale collections are excluded from recommendations
+                  • <strong>Smart exclusions & filtering:</strong> Generic pages like "Home page" and sale collections are excluded, plus AI-powered gender filtering prevents cross-category recommendations
                 </Text>
               </BlockStack>
             </BlockStack>
