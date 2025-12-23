@@ -165,8 +165,10 @@ export default function Settings({ shop }: SettingsProps) {
                 About PathConvert
               </Text>
               <Text as="p">
-                PathConvert uses AI to analyze your collection descriptions and automatically
-                generate smart recommendations that help customers discover related products.
+                PathConvert uses AI to analyze your collections (titles, descriptions, and products) to automatically generate smart, context-aware recommendations that help customers discover related products.
+              </Text>
+              <Text as="p">
+                Features include auto-injection (no theme editing required), AI-powered gender filtering to prevent cross-category recommendations, smart exclusions of generic pages and sale collections, and automatic broken link detection for SEO health.
               </Text>
               <Text as="p" tone="subdued">
                 Version 1.0.0
