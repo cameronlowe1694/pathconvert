@@ -153,6 +153,19 @@ export default function Billing({ shop }: BillingProps) {
           </Layout.Section>
         )}
 
+        <Layout.Section>
+          <Banner>
+            <BlockStack gap="200">
+              <Text as="p" fontWeight="semibold">
+                Per store pricing. Plus applicable taxes.
+              </Text>
+              <Text as="p">
+                Note: Each store requires a separate subscription. Contact us for multi-store agency pricing.
+              </Text>
+            </BlockStack>
+          </Banner>
+        </Layout.Section>
+
         {/* Monthly Plan */}
         <Layout.Section variant="oneHalf">
           <Card>
