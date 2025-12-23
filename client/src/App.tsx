@@ -4,7 +4,6 @@ import Dashboard from './pages/Dashboard';
 import Collections from './pages/Collections';
 import Settings from './pages/Settings';
 import Billing from './pages/Billing';
-import Admin from './pages/Admin';
 
 function App() {
   // Get shop parameter from URL

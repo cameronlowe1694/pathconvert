@@ -7,7 +7,6 @@ import {
 import { syncCollections } from "./collections.js";
 import { generateAllEmbeddings } from "./embeddings.js";
 import { buildSimilarityEdges } from "./similarity.js";
-import { checkAndAlert } from "./alerts.js";
 import prisma from "../db.js";
 
 /**
@@ -37,13 +36,6 @@ export async function processJob(job: any, shop: string, accessToken: string) {
     }
 
     await completeJob(job.id);
-
-    // After successful job completion, check capacity and send alerts if needed
-    if (job.type === "ANALYSE_DEPLOY") {
-      checkAndAlert().catch((err) =>
-        console.error("Capacity alert check failed:", err)
-      );
-    }
   } catch (error: any) {
     console.error(`Job ${job.id} failed:`, error);
     await failJob(job.id, error.message || "Unknown error");
