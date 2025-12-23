@@ -324,12 +324,19 @@ export default function Dashboard({ shop }: DashboardProps) {
               </Text>
               <BlockStack gap="200">
                 <Text as="p">
-                  PathConvert uses OpenAI embeddings to analyze your collection descriptions
-                  and automatically generate relevant recommendations.
+                  PathConvert uses AI to analyze your collections (titles, descriptions, and products) to automatically generate smart, context-aware recommendations.
                 </Text>
                 <Text as="p">
-                  Recommendations appear on collection pages via the app proxy, helping
-                  customers discover related products.
+                  • <strong>Gender-aware filtering:</strong> AI classifies collections by gender to prevent cross-gender recommendations (e.g., men's collections only recommend to other men's or unisex collections)
+                </Text>
+                <Text as="p">
+                  • <strong>Auto-injection:</strong> Buttons appear automatically below collection descriptions—no theme editing required
+                </Text>
+                <Text as="p">
+                  • <strong>Broken link protection:</strong> Deleted collections are automatically detected and removed during re-analysis to maintain SEO health
+                </Text>
+                <Text as="p">
+                  • <strong>Smart exclusions:</strong> Generic pages like "Home page" and sale collections are excluded from recommendations
                 </Text>
               </BlockStack>
             </BlockStack>
