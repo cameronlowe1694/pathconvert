@@ -78,25 +78,31 @@ export default function Collections({ shop }: CollectionsProps) {
     'Title',
     'Handle',
     'Category',
-    <InlineStack gap="100" blockAlign="center" wrap={false}>
-      <span>Has Embedding</span>
-      <Tooltip content="AI analysis status. Collections are analyzed using AI to understand their content and generate smart recommendations.">
-        <Icon source={QuestionMarkMinor} tone="base" />
-      </Tooltip>
-    </InlineStack>,
-    <InlineStack gap="100" blockAlign="center" wrap={false}>
-      <span>Recommendations</span>
-      <Tooltip content="Number of recommendation buttons that will appear on this collection's page.">
-        <Icon source={QuestionMarkMinor} tone="base" />
-      </Tooltip>
-    </InlineStack>,
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <InlineStack gap="100" blockAlign="center" wrap={false}>
+        <span>Has Embedding</span>
+        <Tooltip content="AI analysis status. Collections are analyzed using AI to understand their content and generate smart recommendations.">
+          <Icon source={QuestionMarkMinor} tone="base" />
+        </Tooltip>
+      </InlineStack>
+    </div>,
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <InlineStack gap="100" blockAlign="center" wrap={false}>
+        <span>Recommendations</span>
+        <Tooltip content="Number of recommendation buttons that will appear on this collection's page.">
+          <Icon source={QuestionMarkMinor} tone="base" />
+        </Tooltip>
+      </InlineStack>
+    </div>,
     'Status',
-    <InlineStack gap="100" blockAlign="center" wrap={false}>
-      <span>Actions</span>
-      <Tooltip content="Enable to show recommendations on this collection page, or disable to hide them.">
-        <Icon source={QuestionMarkMinor} tone="base" />
-      </Tooltip>
-    </InlineStack>,
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <InlineStack gap="100" blockAlign="center" wrap={false}>
+        <span>Actions</span>
+        <Tooltip content="Enable to show recommendations on this collection page, or disable to hide them.">
+          <Icon source={QuestionMarkMinor} tone="base" />
+        </Tooltip>
+      </InlineStack>
+    </div>,
   ];
 
   const rows = collections.map((col) => [
@@ -112,7 +118,9 @@ export default function Collections({ shop }: CollectionsProps) {
         <Badge tone="info">No</Badge>
       )}
     </div>,
-    col._count.sourceEdges,
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      {col._count.sourceEdges}
+    </div>,
     <div style={{ display: 'flex', justifyContent: 'center' }}>
       {col.isEnabled ? (
         <Badge tone="success">Enabled</Badge>
@@ -159,7 +167,7 @@ export default function Collections({ shop }: CollectionsProps) {
                   'text',
                   'text',
                   'text', // Has Embedding - center aligned for badges
-                  'numeric', // Recommendations - numeric right-aligned
+                  'text', // Recommendations - center aligned
                   'text', // Status - center aligned for badges
                   'text', // Actions - center aligned for buttons
                 ]}
