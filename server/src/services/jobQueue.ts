@@ -104,6 +104,7 @@ export async function getJobStatus(jobId: string) {
       progressPercent: true,
       step: true,
       errorMessage: true,
+      results: true,
       createdAt: true,
       updatedAt: true,
     },

@@ -161,7 +161,13 @@ export async function syncCollections(shopId: string, shop: string, accessToken:
     created: 0,
     updated: 0,
     skipped: 0,
+    disabled: 0,
   };
+
+  // Get all existing collection IDs from Shopify
+  const shopifyCollectionIds = new Set(
+    shopifyCollections.map((sc) => sc.id.replace("gid://shopify/Collection/", ""))
+  );
 
   for (const sc of shopifyCollections) {
     const shopifyId = sc.id.replace("gid://shopify/Collection/", "");
@@ -239,6 +245,47 @@ export async function syncCollections(shopId: string, shop: string, accessToken:
     } catch (error) {
       console.error(`Error syncing collection ${sc.handle}:`, error);
     }
+  }
+
+  // Detect and disable collections that no longer exist in Shopify (broken links)
+  const dbCollections = await prisma.collection.findMany({
+    where: {
+      shopId,
+      isEnabled: true,
+    },
+    select: {
+      id: true,
+      shopifyCollectionId: true,
+      title: true,
+    },
+  });
+
+  const disabledCollectionIds: string[] = [];
+
+  for (const dbCollection of dbCollections) {
+    if (!shopifyCollectionIds.has(dbCollection.shopifyCollectionId)) {
+      // Collection no longer exists in Shopify - disable it
+      await prisma.collection.update({
+        where: { id: dbCollection.id },
+        data: { isEnabled: false },
+      });
+      disabledCollectionIds.push(dbCollection.id);
+      results.disabled++;
+      console.log(`[Collection Sync] Disabled deleted collection: "${dbCollection.title}"`);
+    }
+  }
+
+  // Clean up edges pointing to disabled collections
+  if (disabledCollectionIds.length > 0) {
+    const deletedEdges = await prisma.edge.deleteMany({
+      where: {
+        OR: [
+          { sourceCollectionId: { in: disabledCollectionIds } },
+          { targetCollectionId: { in: disabledCollectionIds } },
+        ],
+      },
+    });
+    console.log(`[Collection Sync] Cleaned up ${deletedEdges.count} edges pointing to disabled collections`);
   }
 
   return results;

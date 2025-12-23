@@ -73,6 +73,30 @@ async function processAnalyseDeploy(job: any, shop: string, accessToken: string)
     },
   });
 
+  // Store detailed results for UI summary
+  const results = {
+    collections: {
+      created: syncResult.created,
+      updated: syncResult.updated,
+      skipped: syncResult.skipped,
+      disabled: syncResult.disabled,
+    },
+    embeddings: {
+      created: embeddingResult.created,
+      updated: embeddingResult.updated,
+      errors: embeddingResult.errors,
+    },
+    edges: {
+      created: edgeResult.edgesCreated,
+      collectionsProcessed: edgeResult.collectionsProcessed,
+    },
+  };
+
+  await prisma.job.update({
+    where: { id: job.id },
+    data: { results: JSON.stringify(results) },
+  });
+
   await updateJobProgress(job.id, 100, "Complete");
 }
 
