@@ -103,26 +103,32 @@ export default function Collections({ shop }: CollectionsProps) {
     col.title,
     col.handle,
     col.genderCategory,
-    col.isExcludedSale ? (
-      <Badge tone="attention">Sale</Badge>
-    ) : col.embedding ? (
-      <Badge tone="success">Yes</Badge>
-    ) : (
-      <Badge tone="info">No</Badge>
-    ),
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      {col.isExcludedSale ? (
+        <Badge tone="attention">Sale</Badge>
+      ) : col.embedding ? (
+        <Badge tone="success">Yes</Badge>
+      ) : (
+        <Badge tone="info">No</Badge>
+      )}
+    </div>,
     col._count.sourceEdges,
-    col.isEnabled ? (
-      <Badge tone="success">Enabled</Badge>
-    ) : (
-      <Badge>Disabled</Badge>
-    ),
-    <Button
-      size="slim"
-      onClick={() => handleToggle(col.id)}
-      loading={toggling === col.id}
-    >
-      {col.isEnabled ? 'Disable' : 'Enable'}
-    </Button>,
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      {col.isEnabled ? (
+        <Badge tone="success">Enabled</Badge>
+      ) : (
+        <Badge>Disabled</Badge>
+      )}
+    </div>,
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <Button
+        size="slim"
+        onClick={() => handleToggle(col.id)}
+        loading={toggling === col.id}
+      >
+        {col.isEnabled ? 'Disable' : 'Enable'}
+      </Button>
+    </div>,
   ]);
 
   return (
@@ -152,13 +158,14 @@ export default function Collections({ shop }: CollectionsProps) {
                   'text',
                   'text',
                   'text',
-                  'text',
-                  'numeric',
-                  'text',
-                  'text',
+                  'text', // Has Embedding - center aligned for badges
+                  'numeric', // Recommendations - numeric right-aligned
+                  'text', // Status - center aligned for badges
+                  'text', // Actions - center aligned for buttons
                 ]}
                 headings={headings}
                 rows={rows}
+                verticalAlign="middle"
               />
             )}
           </Card>
