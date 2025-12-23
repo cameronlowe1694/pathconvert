@@ -355,8 +355,8 @@ export default function Dashboard({ shop }: DashboardProps) {
                 Help us make PathConvert the ultimate one-click solution for all clients! Share your thoughts, suggestions, or feature requests with us.
               </Text>
               <InlineStack>
-                <Link url="mailto:feedback@pathconvert.com" external>
-                  feedback@pathconvert.com
+                <Link url="mailto:cameron@pathconvert.io" external>
+                  cameron@pathconvert.io
                 </Link>
               </InlineStack>
             </BlockStack>
