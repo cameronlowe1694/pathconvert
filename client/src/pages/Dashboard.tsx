@@ -185,7 +185,7 @@ export default function Dashboard({ shop }: DashboardProps) {
         <Layout.Section>
           <BlockStack gap="200">
             <Text as="h2" variant="headingLg">
-              AI-Powered Collection Button Recommendations
+              PathConvert: AI-Powered Collection Button Recommendations
             </Text>
             <Text as="p" tone="subdued">
               PathConvert is a one-click, set-and-forget way to improve collection page UX by adding smarter product discovery buttons - no theme edits or manual CRO required.
