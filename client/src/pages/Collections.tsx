@@ -8,7 +8,11 @@ import {
   Badge,
   Text,
   Banner,
+  Tooltip,
+  Icon,
+  InlineStack,
 } from '@shopify/polaris';
+import { QuestionMarkMinor } from '@shopify/polaris-icons';
 
 interface CollectionsProps {
   shop: string;
@@ -69,6 +73,32 @@ export default function Collections({ shop }: CollectionsProps) {
     }
   }
 
+  // Custom heading components with tooltips
+  const headings = [
+    'Title',
+    'Handle',
+    'Category',
+    <InlineStack gap="100" blockAlign="center" wrap={false}>
+      <span>Has Embedding</span>
+      <Tooltip content="AI analysis status. Collections are analyzed using AI to understand their content and generate smart recommendations.">
+        <Icon source={QuestionMarkMinor} tone="base" />
+      </Tooltip>
+    </InlineStack>,
+    <InlineStack gap="100" blockAlign="center" wrap={false}>
+      <span>Recommendations</span>
+      <Tooltip content="Number of recommendation buttons that will appear on this collection's page.">
+        <Icon source={QuestionMarkMinor} tone="base" />
+      </Tooltip>
+    </InlineStack>,
+    'Status',
+    <InlineStack gap="100" blockAlign="center" wrap={false}>
+      <span>Actions</span>
+      <Tooltip content="Enable to show recommendations on this collection page, or disable to hide them.">
+        <Icon source={QuestionMarkMinor} tone="base" />
+      </Tooltip>
+    </InlineStack>,
+  ];
+
   const rows = collections.map((col) => [
     col.title,
     col.handle,
@@ -127,15 +157,7 @@ export default function Collections({ shop }: CollectionsProps) {
                   'text',
                   'text',
                 ]}
-                headings={[
-                  'Title',
-                  'Handle',
-                  'Category',
-                  'Has Embedding',
-                  'Recommendations',
-                  'Status',
-                  'Actions',
-                ]}
+                headings={headings}
                 rows={rows}
               />
             )}
