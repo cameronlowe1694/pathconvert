@@ -238,7 +238,7 @@ router.get('/buttons', async (req, res) => {
     res.json({
       buttons,
       cacheVersion: shopRecord.cacheVersion,
-      buttonStyle: shopRecord.settings?.buttonStyle || 'pill',
+      buttonStyle: shopRecord.settings?.buttonStyle || 'rounded',
       alignment: shopRecord.settings?.alignment || 'left',
     });
   } catch (error) {

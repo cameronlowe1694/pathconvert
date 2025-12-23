@@ -35,7 +35,7 @@ model Settings {
   shop        Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
 
   maxButtons  Int     @default(15) // 1-30
-  buttonStyle String  @default("pill") // pill, rounded, square
+  buttonStyle String  @default("rounded") // pill, rounded, square
   alignment   String  @default("left") // left, center, right
 
   createdAt   DateTime @default(now())
