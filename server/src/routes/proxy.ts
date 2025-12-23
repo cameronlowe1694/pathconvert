@@ -124,12 +124,15 @@ router.get('/script.js', (req, res) => {
         borderRadius = '0';
       }
 
-      // Get theme's link styles for typography inheritance
-      var themeLink = document.querySelector('a, footer a, .footer a, p a') || document.body;
-      var computedStyle = window.getComputedStyle(themeLink);
-      var themeFontFamily = computedStyle.fontFamily;
-      var themeFontSize = computedStyle.fontSize;
-      var themeTextColor = computedStyle.color;
+      // Get theme's heading color for better contrast and link font size for sizing
+      var themeHeading = document.querySelector('h1, h2, .collection-title, .page-title') || document.body;
+      var headingStyle = window.getComputedStyle(themeHeading);
+      var themeTextColor = headingStyle.color;
+
+      var themeLink = document.querySelector('a, footer a, .footer a') || document.body;
+      var linkStyle = window.getComputedStyle(themeLink);
+      var themeFontFamily = linkStyle.fontFamily;
+      var themeFontSize = linkStyle.fontSize;
 
       data.buttons.forEach(function(button) {
         const link = document.createElement('a');
