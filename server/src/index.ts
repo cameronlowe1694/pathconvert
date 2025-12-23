@@ -14,6 +14,10 @@ import webhookRoutes from './routes/webhooks.js';
 // Import job worker
 import { startJobWorker } from './services/jobWorker.js';
 
+// Import utilities
+import prisma from './db.js';
+import { sanitizeShop } from './utils/shopify.js';
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -59,10 +63,38 @@ app.use('/api', apiRoutes);
 app.use('/apps/pathconvert', proxyRoutes);
 app.use('/webhooks', webhookRoutes);
 
-// Handle root URL - serve React app
-app.get('/', (req, res) => {
-  // Always serve the React app at root
-  // The React app will handle authentication via App Bridge
+// Handle root URL - check OAuth before serving app
+app.get('/', async (req, res) => {
+  const shopParam = req.query.shop as string | undefined;
+
+  // If no shop parameter, serve the app (already embedded, has session)
+  if (!shopParam) {
+    return res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+  }
+
+  const shop = sanitizeShop(shopParam);
+  if (!shop) {
+    return res.status(400).send('Invalid shop parameter');
+  }
+
+  console.log('[Root] App accessed with shop parameter:', shop);
+
+  // Check if shop has valid OAuth token
+  const shopRecord = await prisma.shop.findUnique({
+    where: { shopDomain: shop },
+    select: { accessToken: true },
+  });
+
+  const hasValidToken = shopRecord && shopRecord.accessToken && shopRecord.accessToken.length > 0;
+
+  if (!hasValidToken) {
+    console.log('[Root] No valid token found, redirecting to OAuth');
+    // Redirect to OAuth flow to get fresh token
+    return res.redirect(`/auth?shop=${shop}`);
+  }
+
+  console.log('[Root] Valid token found, serving app');
+  // Token exists, serve the embedded app
   res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
 });
 
