@@ -104,7 +104,25 @@ router.get('/script.js', (req, res) => {
       buttonsContainer.style.display = 'flex';
       buttonsContainer.style.flexWrap = 'wrap';
       buttonsContainer.style.gap = '0.75rem';
-      buttonsContainer.style.justifyContent = 'flex-start';
+
+      // Apply alignment from settings
+      var alignment = data.alignment || 'left';
+      if (alignment === 'center') {
+        buttonsContainer.style.justifyContent = 'center';
+      } else if (alignment === 'right') {
+        buttonsContainer.style.justifyContent = 'flex-end';
+      } else {
+        buttonsContainer.style.justifyContent = 'flex-start';
+      }
+
+      // Determine border radius based on button style
+      var buttonStyle = data.buttonStyle || 'pill';
+      var borderRadius = '0.25rem'; // default rounded
+      if (buttonStyle === 'pill') {
+        borderRadius = '9999px';
+      } else if (buttonStyle === 'square') {
+        borderRadius = '0';
+      }
 
       data.buttons.forEach(function(button) {
         const link = document.createElement('a');
@@ -116,7 +134,7 @@ router.get('/script.js', (req, res) => {
         link.style.backgroundColor = '#000';
         link.style.color = '#fff';
         link.style.textDecoration = 'none';
-        link.style.borderRadius = '0.25rem';
+        link.style.borderRadius = borderRadius;
         link.style.fontSize = '0.875rem';
         link.style.fontWeight = '500';
         link.style.transition = 'background-color 0.2s';
@@ -205,8 +223,12 @@ router.get('/buttons', async (req, res) => {
     // Get recommendations
     const recommendations = await getRecommendations(shopRecord.id, handle);
 
+    // Apply maxButtons limit from settings (default 15)
+    const maxButtons = shopRecord.settings?.maxButtons || 15;
+    const limitedRecommendations = recommendations.slice(0, maxButtons);
+
     // Format buttons
-    const buttons = recommendations.map((rec: any) => ({
+    const buttons = limitedRecommendations.map((rec: any) => ({
       title: rec.title,
       url: rec.url,
       score: rec.score,
@@ -217,6 +239,7 @@ router.get('/buttons', async (req, res) => {
       buttons,
       cacheVersion: shopRecord.cacheVersion,
       buttonStyle: shopRecord.settings?.buttonStyle || 'pill',
+      alignment: shopRecord.settings?.alignment || 'left',
     });
   } catch (error) {
     console.error('App proxy error:', error);
