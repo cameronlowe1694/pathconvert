@@ -168,7 +168,8 @@ export default function Dashboard({ shop }: DashboardProps) {
 
   return (
     <Page
-      title="PathConvert"
+      title="PathConvert: AI-Powered Collection Button Recommendations"
+      subtitle="PathConvert is a one-click, set-and-forget way to improve collection page UX by adding smarter product discovery buttons - no theme edits or manual CRO required."
       primaryAction={{
         content: 'Analyse & Deploy',
         onAction: handleAnalyseDeploy,
@@ -182,17 +183,6 @@ export default function Dashboard({ shop }: DashboardProps) {
       ]}
     >
       <Layout>
-        <Layout.Section>
-          <BlockStack gap="200">
-            <Text as="h2" variant="headingLg">
-              PathConvert: AI-Powered Collection Button Recommendations
-            </Text>
-            <Text as="p" tone="subdued">
-              PathConvert is a one-click, set-and-forget way to improve collection page UX by adding smarter product discovery buttons - no theme edits or manual CRO required.
-            </Text>
-          </BlockStack>
-        </Layout.Section>
-
         {isDevelopmentMode && (
           <Layout.Section>
             <Banner tone="info">
