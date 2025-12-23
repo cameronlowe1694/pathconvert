@@ -362,6 +362,9 @@ export default function Dashboard({ shop }: DashboardProps) {
             </BlockStack>
           </Card>
         </Layout.Section>
+
+        {/* Bottom padding for consistent spacing */}
+        <Layout.Section />
       </Layout>
     </Page>
   );
