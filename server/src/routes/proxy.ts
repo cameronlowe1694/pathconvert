@@ -116,13 +116,20 @@ router.get('/script.js', (req, res) => {
       }
 
       // Determine border radius based on button style
-      var buttonStyle = data.buttonStyle || 'pill';
+      var buttonStyle = data.buttonStyle || 'rounded';
       var borderRadius = '0.25rem'; // default rounded
       if (buttonStyle === 'pill') {
         borderRadius = '9999px';
       } else if (buttonStyle === 'square') {
         borderRadius = '0';
       }
+
+      // Get theme's paragraph styles for typography inheritance
+      var themeParagraph = document.querySelector('p, .rte, .product-description') || document.body;
+      var computedStyle = window.getComputedStyle(themeParagraph);
+      var themeFontFamily = computedStyle.fontFamily;
+      var themeFontSize = computedStyle.fontSize;
+      var themeTextColor = computedStyle.color;
 
       data.buttons.forEach(function(button) {
         const link = document.createElement('a');
@@ -131,19 +138,24 @@ router.get('/script.js', (req, res) => {
         link.textContent = button.title;
         link.style.display = 'inline-block';
         link.style.padding = '0.75rem 1.5rem';
-        link.style.backgroundColor = '#000';
-        link.style.color = '#fff';
+        link.style.backgroundColor = 'transparent';
+        link.style.color = themeTextColor;
+        link.style.border = '1.5px solid ' + themeTextColor;
         link.style.textDecoration = 'none';
         link.style.borderRadius = borderRadius;
-        link.style.fontSize = '0.875rem';
+        link.style.fontFamily = themeFontFamily;
+        link.style.fontSize = themeFontSize;
         link.style.fontWeight = '500';
-        link.style.transition = 'background-color 0.2s';
+        link.style.transition = 'all 0.2s ease';
+        link.style.cursor = 'pointer';
 
         link.addEventListener('mouseenter', function() {
-          link.style.backgroundColor = '#333';
+          link.style.backgroundColor = themeTextColor;
+          link.style.color = '#fff';
         });
         link.addEventListener('mouseleave', function() {
-          link.style.backgroundColor = '#000';
+          link.style.backgroundColor = 'transparent';
+          link.style.color = themeTextColor;
         });
 
         buttonsContainer.appendChild(link);
