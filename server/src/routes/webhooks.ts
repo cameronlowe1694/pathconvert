@@ -19,7 +19,13 @@ function verifyWebhook(body: string, hmacHeader: string): boolean {
 
 /**
  * Webhook: APP_UNINSTALLED
- * Clean up shop data when app is uninstalled
+ * Acknowledge app uninstallation
+ *
+ * IMPORTANT: We do NOT delete or clear data here to avoid race conditions.
+ * Webhooks can arrive out of order - if this arrives AFTER a reinstall,
+ * clearing the token would break the freshly installed app.
+ *
+ * Data cleanup happens in shop/redact webhook (sent 48 hours after uninstall).
  */
 router.post('/app-uninstalled', raw({ type: 'application/json' }), async (req, res) => {
   try {
@@ -34,17 +40,10 @@ router.post('/app-uninstalled', raw({ type: 'application/json' }), async (req, r
     const data = JSON.parse(body);
     const shopDomain = data.domain;
 
-    console.log('[Webhook] App uninstalled for shop:', shopDomain);
+    console.log('[Webhook] App uninstalled acknowledged for shop:', shopDomain);
+    console.log('[Webhook] Data will be cleaned up via shop/redact webhook in 48 hours');
 
-    // Clear the access token (makes it invalid immediately)
-    // Keep the shop record so we can detect reinstalls
-    await prisma.shop.updateMany({
-      where: { shopDomain },
-      data: { accessToken: '' }
-    });
-
-    console.log('[Webhook] Cleared access token for shop:', shopDomain);
-
+    // Just acknowledge - don't clear data to avoid race conditions with reinstalls
     res.status(200).send('OK');
   } catch (error) {
     console.error('[Webhook] Error processing app-uninstalled:', error);
