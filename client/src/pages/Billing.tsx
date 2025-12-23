@@ -140,11 +140,16 @@ export default function Billing({ shop }: BillingProps) {
 
         {!hasActiveSubscription && (
           <Layout.Section>
-            <Banner tone="warning">
-              <Text as="p">
-                Subscribe to unlock PathConvert's AI-powered collection recommendations and start driving more sales.
-              </Text>
-            </Banner>
+            <Card>
+              <BlockStack gap="300">
+                <Text as="h3" variant="headingMd">
+                  Set-and-forget AI solution proven to improve collection page CVR and UX
+                </Text>
+                <Text as="p" tone="subdued">
+                  Real client results: 21.7% higher conversion rate, 99% lower bounce rate, £211k+ additional revenue in 30 days.
+                </Text>
+              </BlockStack>
+            </Card>
           </Layout.Section>
         )}
 
@@ -154,7 +159,7 @@ export default function Billing({ shop }: BillingProps) {
             <BlockStack gap="400">
               <InlineStack align="space-between" blockAlign="center">
                 <Text as="h2" variant="headingLg">
-                  Monthly Plan
+                  Monthly
                 </Text>
                 {hasActiveSubscription && billing.interval === 'monthly' && (
                   <Badge tone="success">Current Plan</Badge>
@@ -163,7 +168,7 @@ export default function Billing({ shop }: BillingProps) {
 
               <BlockStack gap="200">
                 <Text as="p" variant="heading2xl">
-                  £29
+                  £67
                   <Text as="span" variant="bodyLg" tone="subdued"> /month</Text>
                 </Text>
                 <Text as="p" tone="subdued">
@@ -172,13 +177,12 @@ export default function Billing({ shop }: BillingProps) {
               </BlockStack>
 
               <BlockStack gap="200">
-                <Text as="p" fontWeight="semibold">Includes:</Text>
                 <List>
-                  <List.Item>Unlimited AI analysis runs</List.Item>
-                  <List.Item>Smart collection recommendations</List.Item>
-                  <List.Item>Customizable button styles</List.Item>
-                  <List.Item>Real-time updates</List.Item>
-                  <List.Item>Full analytics dashboard</List.Item>
+                  <List.Item>Unlimited collections & AI analysis</List.Item>
+                  <List.Item>Auto-injection (no theme edits)</List.Item>
+                  <List.Item>Smart exclusions of sale/generic pages</List.Item>
+                  <List.Item>Automatic broken link cleanup for SEO</List.Item>
+                  <List.Item>Customizable button styles & placement</List.Item>
                   <List.Item>Email support</List.Item>
                 </List>
               </BlockStack>
@@ -221,32 +225,37 @@ export default function Billing({ shop }: BillingProps) {
             <BlockStack gap="400">
               <InlineStack align="space-between" blockAlign="center">
                 <Text as="h2" variant="headingLg">
-                  Annual Plan
+                  Annual — Best Value
                 </Text>
                 {hasActiveSubscription && billing.interval === 'annual' ? (
                   <Badge tone="success">Current Plan</Badge>
                 ) : (
-                  <Badge tone="attention">Save £58/year</Badge>
+                  <Badge tone="attention">Save £134/year</Badge>
                 )}
               </InlineStack>
 
               <BlockStack gap="200">
                 <Text as="p" variant="heading2xl">
-                  £290
+                  £670
                   <Text as="span" variant="bodyLg" tone="subdued"> /year</Text>
                 </Text>
                 <Text as="p" tone="subdued">
-                  £24.17/month billed annually
+                  2 months free • Save £134 annually
                 </Text>
               </BlockStack>
+
+              <Text as="p" tone="subdued" fontWeight="medium">
+                Preferred by agencies managing multiple Shopify stores
+              </Text>
 
               <BlockStack gap="200">
                 <Text as="p" fontWeight="semibold">Everything in Monthly, plus:</Text>
                 <List>
-                  <List.Item>Save £58 compared to monthly</List.Item>
+                  <List.Item>Proven CVR impact: Clients see 20%+ conversion rate uplift</List.Item>
+                  <List.Item>High engagement: 12+ seconds average interaction time</List.Item>
+                  <List.Item>Lower bounce rates: Users find relevant products immediately</List.Item>
                   <List.Item>Priority email support</List.Item>
-                  <List.Item>Early access to new features</List.Item>
-                  <List.Item>Dedicated account manager</List.Item>
+                  <List.Item>Agency-friendly annual billing</List.Item>
                 </List>
               </BlockStack>
 
@@ -286,19 +295,55 @@ export default function Billing({ shop }: BillingProps) {
           <Card>
             <BlockStack gap="400">
               <Text as="h2" variant="headingMd">
+                Why PathConvert?
+              </Text>
+              <BlockStack gap="300">
+                <BlockStack gap="100">
+                  <Text as="p" fontWeight="semibold">Proven Revenue Impact</Text>
+                  <Text as="p">
+                    20%+ CVR uplift on collection pages, driving significant incremental revenue with 12+ seconds average user engagement.
+                  </Text>
+                </BlockStack>
+                <BlockStack gap="100">
+                  <Text as="p" fontWeight="semibold">Zero Maintenance Required</Text>
+                  <Text as="p">
+                    Deploy in minutes, works immediately. No theme conflicts, custom code, or ongoing work. Automatic updates and broken link cleanup.
+                  </Text>
+                </BlockStack>
+                <BlockStack gap="100">
+                  <Text as="p" fontWeight="semibold">Agency-Optimized</Text>
+                  <Text as="p">
+                    Deploy across multiple client stores with one annual payment vs 12 monthly charges. Priority support for agency partners.
+                  </Text>
+                </BlockStack>
+              </BlockStack>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="400">
+              <Text as="h2" variant="headingMd">
                 Frequently Asked Questions
               </Text>
               <BlockStack gap="300">
                 <BlockStack gap="100">
-                  <Text as="p" fontWeight="semibold">Can I cancel anytime?</Text>
+                  <Text as="p" fontWeight="semibold">Is this suitable for multiple stores?</Text>
                   <Text as="p">
-                    Yes, you can cancel your subscription at any time. You'll retain access until the end of your current billing period.
+                    Yes! Agencies managing multiple Shopify stores prefer our annual plan for simplified billing and priority support.
                   </Text>
                 </BlockStack>
                 <BlockStack gap="100">
-                  <Text as="p" fontWeight="semibold">What happens if I cancel?</Text>
+                  <Text as="p" fontWeight="semibold">What's the typical CVR impact?</Text>
                   <Text as="p">
-                    Your recommendations will stop updating and the Analyse & Deploy feature will be disabled. Existing recommendations will remain visible until you uninstall the app.
+                    Better product discovery through AI recommendations typically improves collection page engagement by 20%+, though results vary by store catalog and traffic patterns.
+                  </Text>
+                </BlockStack>
+                <BlockStack gap="100">
+                  <Text as="p" fontWeight="semibold">Can I cancel anytime?</Text>
+                  <Text as="p">
+                    Yes, you can cancel your subscription at any time. You'll retain access until the end of your current billing period.
                   </Text>
                 </BlockStack>
                 <BlockStack gap="100">
@@ -311,6 +356,9 @@ export default function Billing({ shop }: BillingProps) {
             </BlockStack>
           </Card>
         </Layout.Section>
+
+        {/* Bottom padding */}
+        <Layout.Section />
       </Layout>
     </Page>
   );
