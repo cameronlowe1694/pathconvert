@@ -3,6 +3,7 @@ import { authenticate, AuthenticatedRequest } from '../middleware/auth.js';
 import prisma from '../db.js';
 import { createJob, getJobStatus } from '../services/jobQueue.js';
 import { getEntitlement } from '../services/entitlement.js';
+import { getCapacityMetrics, checkAndAlert } from '../services/alerts.js';
 
 const router = Router();
 
@@ -577,6 +578,35 @@ router.delete('/admin/delete-shop', async (req, res) => {
   } catch (error) {
     console.error('Delete shop error:', error);
     res.status(500).json({ error: 'Failed to delete shop' });
+  }
+});
+
+// GET /api/admin/capacity - Get capacity metrics and check alerts
+// This endpoint is for monitoring - call it periodically or after key events
+router.get('/admin/capacity', async (req, res) => {
+  try {
+    const metrics = await getCapacityMetrics();
+
+    // Optionally trigger alert check if approaching limits
+    if (metrics.storeCapacityPercent >= 80 || metrics.shouldBlockSignups) {
+      // Run alert check in background (don't await)
+      checkAndAlert().catch((err) =>
+        console.error('Background alert check failed:', err)
+      );
+    }
+
+    res.json({
+      capacity: metrics,
+      recommendation:
+        metrics.shouldBlockSignups
+          ? 'Upgrade infrastructure immediately'
+          : metrics.storeCapacityPercent >= 80
+            ? 'Plan infrastructure upgrade soon'
+            : 'Capacity OK',
+    });
+  } catch (error) {
+    console.error('Capacity check error:', error);
+    res.status(500).json({ error: 'Failed to check capacity' });
   }
 });
 
